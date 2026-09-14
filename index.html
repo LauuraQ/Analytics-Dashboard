@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SEO & Leads Analytics Dashboard</title>
+    <link rel="icon" href="data:,">
 
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -156,6 +157,15 @@
             margin-top: 10px;
         }
 
+        /* Блок табов переключения листов */
+        .tabs-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 20px;
+        }
+
         .tabs-header {
             display: flex;
             justify-content: space-between;
@@ -163,15 +173,23 @@
             margin-bottom: 10px;
         }
 
+        .domain-tabs-wrap {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
         .domain-tabs {
             display: flex;
             gap: 8px;
             overflow-x: auto;
-            padding-bottom: 6px;
+            flex-wrap: wrap;
+            align-items: center;
         }
 
         .tab-btn {
-            background: var(--bg-card);
+            background: var(--bg-input);
             border: 1px solid var(--border-color);
             color: var(--text-muted);
             padding: 8px 16px;
@@ -193,6 +211,24 @@
             color: #ffffff;
             border-color: var(--accent);
             font-weight: 600;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.35);
+        }
+
+        .btn-add-tab {
+            background: transparent;
+            border: 1px dashed var(--border-color);
+            color: var(--text-muted);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-add-tab:hover {
+            color: var(--accent);
+            border-color: var(--accent);
+            background: rgba(59, 130, 246, 0.05);
         }
 
         .dashboard-layout {
@@ -262,15 +298,6 @@
             height: 400px;
             width: 100%;
         }
-
-        .manual-sheets-box {
-            display: none;
-            background: var(--bg-input);
-            border: 1px dashed var(--border-color);
-            padding: 12px;
-            border-radius: 8px;
-            margin-top: 10px;
-        }
     </style>
 </head>
 
@@ -280,16 +307,15 @@
         <div class="title">
             <div>
                 <h1>SEO & Leads Analytics Dashboard</h1>
-                <div class="subtitle">Визуализация данных Google Таблиц без проблем с CORS</div>
+                <div class="subtitle">Автоматическая визуализация данных Google Таблиц</div>
             </div>
         </div>
 
         <div class="card">
             <div class="input-row">
-                <input type="text" id="sheetUrl"
-                    placeholder="Вставьте ссылку на Google Таблицу (доступ: «Все, у кого есть ссылка»)..." />
+                <input type="text" id="sheetUrl" placeholder="Вставьте ссылку на Google Таблицу" />
                 <button class="btn btn-primary" id="loadBtn" onclick="initDashboard()">Загрузить отчет</button>
-                <button class="btn" onclick="togglePasteArea()">📋 Вставить текстом</button>
+                <button class="btn" onclick="togglePasteArea()">📋 Вставить ячейки текстом</button>
             </div>
 
             <textarea id="rawPasteArea"
@@ -298,29 +324,20 @@
                 <button class="btn btn-primary" onclick="loadFromPaste()">Построить графики из текста</button>
             </div>
 
-            <div id="manualSheetsBox" class="manual-sheets-box">
-                <div style="font-size: 13px; margin-bottom: 8px; color: var(--text-main);">
-                    <b>Укажите названия листов (сайтов) через запятую</b>, чтобы переключаться между ними:
-                </div>
-                <div class="input-row">
-                    <input type="text" id="manualSheetsInput" placeholder="Например: site.ru, site.com, site.by" />
-                    <button class="btn btn-primary" onclick="applyManualSheets()">Создать вкладки</button>
-                </div>
-            </div>
-
             <div id="statusText" class="status-msg">
-                Готов к загрузке. Вставьте ссылку на таблицу с доступом «Все, у кого есть ссылка».
+                Готов к загрузке.
             </div>
         </div>
 
-        <!-- Вкладки сайтов -->
-        <div id="tabsSection" style="display: none; margin-bottom: 20px;">
+        <!-- Табы листов -->
+        <div id="tabsSection" class="tabs-card" style="display: none;">
             <div class="tabs-header">
-                <span style="font-size: 13px; color: var(--text-muted);">Сайты (вкладки):</span>
-                <button class="btn" style="padding: 4px 10px; font-size: 12px;" onclick="toggleManualSheets()">✏️
-                    Указать / изменить листы</button>
+                <span style="font-size: 13px; color: var(--text-muted); font-weight: 600;">Листы таблицы:</span>
             </div>
-            <div class="domain-tabs" id="domainTabs"></div>
+            <div class="domain-tabs-wrap">
+                <div class="domain-tabs" id="domainTabs"></div>
+                <button class="btn-add-tab" onclick="addNewTabPrompt()">+ Добавить вкладку</button>
+            </div>
         </div>
 
         <!-- Меню + Графики -->
@@ -357,12 +374,11 @@
     <script>
         let currentSpreadsheetId = "";
         let currentGid = null;
-        let isAppsScriptUrl = false;
-        let appsScriptBaseUrl = "";
         let activeSheetName = "";
         let activeCategory = "topvisor";
         let chartInstances = [];
         let currentParsedData = null;
+        let currentSheetsList = [];
 
         function togglePasteArea() {
             const area = document.getElementById("rawPasteArea");
@@ -370,11 +386,6 @@
             const isHidden = area.style.display === "none" || !area.style.display;
             area.style.display = isHidden ? "block" : "none";
             btnRow.style.display = isHidden ? "block" : "none";
-        }
-
-        function toggleManualSheets() {
-            const box = document.getElementById("manualSheetsBox");
-            box.style.display = box.style.display === "none" || !box.style.display ? "block" : "none";
         }
 
         function extractSpreadsheetId(url) {
@@ -387,86 +398,90 @@
             return match ? match[1] : null;
         }
 
+        // Поиск вкладок
+        async function discoverSheets(sheetId) {
+            const targetUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/htmlview`;
+            const proxies = [
+                (u) => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
+                (u) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`
+            ];
+
+            let html = "";
+            for (const proxyFn of proxies) {
+                try {
+                    const res = await fetch(proxyFn(targetUrl));
+                    if (!res.ok) continue;
+                    const data = await res.json().catch(() => null);
+                    html = data && data.contents ? data.contents : (typeof data === "string" ? data : await res.text().catch(() => ""));
+                    if (html && html.length > 300) break;
+                } catch (e) { }
+            }
+
+            if (!html) return [];
+
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, "text/html");
+            let names = [];
+
+            doc.querySelectorAll(".sheet-tab, ul#sheet-menu li a, #sheet-menu li").forEach(el => {
+                const txt = el.textContent.trim();
+                if (txt && !names.includes(txt)) names.push(txt);
+            });
+
+            if (names.length === 0) {
+                const matches = [...html.matchAll(/name:\s*"([^"]+)"/g)].map(m => m[1]);
+                names = [...new Set(matches)];
+            }
+
+            return names.filter(Boolean);
+        }
+
         async function initDashboard() {
             const urlInput = document.getElementById("sheetUrl").value.trim();
             const status = document.getElementById("statusText");
             const loadBtn = document.getElementById("loadBtn");
 
-            if (!urlInput) {
-                status.innerText = "Укажите ссылку на Google Таблицу.";
-                status.style.color = "var(--danger)";
-                return;
-            }
-
-            // Если скопировали текст ячеек напрямую в инпут
             if (urlInput.includes("\t") || urlInput.includes("\n")) {
                 loadFromRawText(urlInput);
                 return;
             }
 
-            // 1. Проверка: возможно, это ссылка на Apps Script Web App
-            if (urlInput.includes("script.google.com/macros/s/")) {
-                isAppsScriptUrl = true;
-                appsScriptBaseUrl = urlInput.split("?")[0];
-                status.innerText = "Подключение к Google Apps Script...";
-                status.style.color = "var(--text-muted)";
-                loadBtn.disabled = true;
-                try {
-                    const res = await fetch(`${appsScriptBaseUrl}?action=getSheets`);
-                    const json = await res.json();
-                    if (json.sheets && json.sheets.length > 0) {
-                        status.innerText = `Найдено листов через Apps Script: ${json.sheets.length}`;
-                        status.style.color = "var(--success)";
-                        renderDomainTabs(json.sheets);
-                    } else {
-                        loadSheetDirect(null, null);
-                    }
-                } catch (e) {
-                    status.innerText = "Ошибка загрузки через Apps Script: " + e.message;
-                    status.style.color = "var(--danger)";
-                } finally {
-                    loadBtn.disabled = false;
-                }
-                return;
-            }
-
-            // 2. Стандартная ссылка на Google Таблицу
-            isAppsScriptUrl = false;
             const sheetId = extractSpreadsheetId(urlInput);
             if (!sheetId) {
-                status.innerText = "Ошибка: не удалось распознать ID Google Таблицы в ссылке.";
+                status.innerText = "Ошибка: не удалось распознать ID Google Таблицы.";
                 status.style.color = "var(--danger)";
                 return;
             }
 
             currentSpreadsheetId = sheetId;
             currentGid = extractGid(urlInput);
+            status.innerText = "Поиск листов в таблице...";
+            status.style.color = "var(--text-muted)";
+            loadBtn.disabled = true;
 
-            // Проверяем сохраненные ранее пользователем вкладки для этого документа
-            const cached = localStorage.getItem("sheets_" + sheetId);
-            let sheets = cached ? JSON.parse(cached) : [];
-
-            document.getElementById("dashboardLayout").style.display = "grid";
-
-            if (sheets && sheets.length > 0) {
-                renderDomainTabs(sheets);
-            } else {
-                renderDomainTabs([]);
-                document.getElementById("manualSheetsBox").style.display = "block";
-                loadSheetDirect(null, currentGid);
-            }
-        }
-
-        function applyManualSheets() {
-            const val = document.getElementById("manualSheetsInput").value.trim();
-            if (!val) return;
-            const list = val.split(",").map(s => s.trim()).filter(Boolean);
-            if (list.length > 0) {
-                if (currentSpreadsheetId) {
-                    localStorage.setItem("sheets_" + currentSpreadsheetId, JSON.stringify(list));
+            try {
+                let sheets = await discoverSheets(sheetId);
+                const cached = localStorage.getItem("sheets_" + sheetId);
+                if ((!sheets || sheets.length === 0) && cached) {
+                    try { sheets = JSON.parse(cached); } catch (e) { }
                 }
-                renderDomainTabs(list);
-                document.getElementById("manualSheetsBox").style.display = "none";
+
+                if (sheets && sheets.length > 0) {
+                    currentSheetsList = sheets;
+                    localStorage.setItem("sheets_" + sheetId, JSON.stringify(sheets));
+                    status.innerText = `Найдено листов: ${sheets.length}`;
+                    status.style.color = "var(--success)";
+                    renderDomainTabs(sheets);
+                } else {
+                    currentSheetsList = ["Текущий лист"];
+                    status.innerText = "Загрузка листа таблицы...";
+                    renderDomainTabs(currentSheetsList);
+                }
+            } catch (err) {
+                currentSheetsList = ["Текущий лист"];
+                renderDomainTabs(currentSheetsList);
+            } finally {
+                loadBtn.disabled = false;
             }
         }
 
@@ -474,16 +489,13 @@
             const section = document.getElementById("tabsSection");
             const container = document.getElementById("domainTabs");
             container.innerHTML = "";
-            section.style.display = "block";
 
             if (!sheets || sheets.length === 0) {
-                const btn = document.createElement("button");
-                btn.className = "tab-btn active";
-                btn.innerText = "Основной лист";
-                btn.onclick = () => loadSheetDirect(null, currentGid);
-                container.appendChild(btn);
-                return;
+                sheets = ["Текущий лист"];
             }
+
+            currentSheetsList = [...sheets];
+            section.style.display = "block";
 
             sheets.forEach((sheet, idx) => {
                 const btn = document.createElement("button");
@@ -492,79 +504,143 @@
                 btn.onclick = () => {
                     document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
                     btn.classList.add("active");
-                    loadSheetDirect(sheet, null);
+                    loadSheetDirect(sheet === "Текущий лист" ? null : sheet, null);
                 };
                 container.appendChild(btn);
             });
 
-            loadSheetDirect(sheets[0], null);
+            document.getElementById("dashboardLayout").style.display = "grid";
+            loadSheetDirect(sheets[0] === "Текущий лист" ? null : sheets[0], currentGid);
         }
 
-        // Загрузка через JSONP (100% обход CORS для Google Таблиц) или Apps Script
-        function loadSheetDirect(sheetName, gid) {
+        function addNewTabPrompt() {
+            const name = prompt("Введите точное название вкладки (листа) из Google Таблицы:\n(например: site.ru)", "");
+            if (!name || !name.trim()) return;
+            const cleanName = name.trim();
+
+            if (!currentSheetsList.includes(cleanName)) {
+                if (currentSheetsList.length === 1 && currentSheetsList[0] === "Текущий лист") {
+                    currentSheetsList = [];
+                }
+                currentSheetsList.push(cleanName);
+                if (currentSpreadsheetId) {
+                    localStorage.setItem("sheets_" + currentSpreadsheetId, JSON.stringify(currentSheetsList));
+                }
+                renderDomainTabs(currentSheetsList);
+
+                const btns = document.querySelectorAll(".tab-btn");
+                btns.forEach(b => {
+                    if (b.innerText === cleanName) {
+                        b.click();
+                    }
+                });
+            }
+        }
+
+        // Загрузка через JSONP — обходит CORS на GitHub Pages
+        function fetchSheetViaJsonp(spreadsheetId, sheetName, gid) {
+            return new Promise((resolve, reject) => {
+                const callbackName = "gviz_jsonp_" + Math.floor(Math.random() * 10000000);
+                let url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=responseHandler:${callbackName}`;
+
+                if (sheetName && sheetName !== "Текущий лист") {
+                    url += `&sheet=${encodeURIComponent(sheetName)}`;
+                } else if (gid) {
+                    url += `&gid=${gid}`;
+                }
+
+                let completed = false;
+                const script = document.createElement("script");
+
+                window[callbackName] = function (data) {
+                    completed = true;
+                    cleanup();
+                    if (data && data.table) {
+                        resolve(data.table);
+                    } else if (data && data.status === "error") {
+                        reject(new Error(data.errors && data.errors[0] ? data.errors[0].detailed_message || data.errors[0].message : "Ошибка ответа Google"));
+                    } else {
+                        reject(new Error("Таблица не содержит строк данных"));
+                    }
+                };
+
+                function cleanup() {
+                    delete window[callbackName];
+                    if (script.parentNode) script.parentNode.removeChild(script);
+                }
+
+                script.onerror = function () {
+                    if (completed) return;
+                    completed = true;
+                    cleanup();
+                    reject(new Error("Сеть заблокировала JSONP-скрипт"));
+                };
+
+                script.src = url;
+                document.head.appendChild(script);
+
+                setTimeout(() => {
+                    if (!completed) {
+                        completed = true;
+                        cleanup();
+                        reject(new Error("Таймаут ожидания ответа от Google"));
+                    }
+                }, 7000);
+            });
+        }
+
+        // Загрузка через Fetch (резервная)
+        async function fetchSheetViaFetch(spreadsheetId, sheetName, gid) {
+            let url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json`;
+            if (sheetName && sheetName !== "Текущий лист") {
+                url += `&sheet=${encodeURIComponent(sheetName)}`;
+            } else if (gid) {
+                url += `&gid=${gid}`;
+            }
+
+            const res = await fetch(url);
+            const rawText = await res.text();
+            const jsonStart = rawText.indexOf("{");
+            const jsonEnd = rawText.lastIndexOf("}");
+            if (jsonStart === -1 || jsonEnd === -1) throw new Error("Неверный формат ответа");
+            const json = JSON.parse(rawText.substring(jsonStart, jsonEnd + 1));
+            if (!json || !json.table) throw new Error("Нет таблицы");
+            return json.table;
+        }
+
+        // Универсальный контроллер получения таблицы
+        async function loadSheetDirect(sheetName, gid) {
             activeSheetName = sheetName || "Текущий лист";
             const status = document.getElementById("statusText");
 
-            status.innerText = `Загрузка данных листа "${activeSheetName}"...`;
+            status.innerText = `Загрузка данных для "${activeSheetName}"...`;
             status.style.color = "var(--text-muted)";
 
-            // Вариант А: Загрузка через Apps Script
-            if (isAppsScriptUrl) {
-                let url = appsScriptBaseUrl;
-                if (sheetName) url += `?sheet=${encodeURIComponent(sheetName)}`;
-                fetch(url)
-                    .then(r => r.json())
-                    .then(json => {
-                        if (json.error) throw new Error(json.error);
-                        parseMatrixData(json.data);
-                        status.innerText = `Лист "${activeSheetName}" успешно загружен! Периодов: ${currentParsedData.dates.length}`;
-                        status.style.color = "var(--success)";
-                        renderCategoryCharts();
-                    })
-                    .catch(err => {
-                        status.innerText = `Ошибка: ${err.message}`;
-                        status.style.color = "var(--danger)";
-                    });
-                return;
-            }
+            let table = null;
 
-            // Вариант Б: Загрузка через JSONP (Google Visualization API)
-            window.handleGvizResponse = function (response) {
-                cleanupJsonp();
-                if (!response || !response.table) {
-                    status.innerText = "Ошибка: Google вернул пустой ответ. Проверьте права доступа к таблице.";
+            // 1. Сначала пробуем через JSONP (нативно для GitHub Pages)
+            try {
+                table = await fetchSheetViaJsonp(currentSpreadsheetId, sheetName, gid);
+            } catch (jsonpErr) {
+                // 2. Если JSONP отклонен сетью, пробуем Fetch
+                try {
+                    table = await fetchSheetViaFetch(currentSpreadsheetId, sheetName, gid);
+                } catch (fetchErr) {
+                    status.innerText = `Ошибка загрузки "${activeSheetName}": ${jsonpErr.message || fetchErr.message}`;
                     status.style.color = "var(--danger)";
                     return;
                 }
-                processSheetData(response.table);
-                status.innerText = `Лист "${activeSheetName}" успешно загружен! Периодов: ${currentParsedData.dates.length}`;
-                status.style.color = "var(--success)";
-                renderCategoryCharts();
-            };
-
-            let gvizUrl = `https://docs.google.com/spreadsheets/d/${currentSpreadsheetId}/gviz/tq?tqx=responseHandler:handleGvizResponse`;
-            if (sheetName) {
-                gvizUrl += `&sheet=${encodeURIComponent(sheetName)}`;
-            } else if (gid) {
-                gvizUrl += `&gid=${gid}`;
             }
 
-            cleanupJsonp();
-
-            const script = document.createElement("script");
-            script.id = "gviz-jsonp-loader";
-            script.src = gvizUrl;
-            script.onerror = function () {
-                cleanupJsonp();
-                status.innerText = "Ошибка загрузки скрипта. Убедитесь, что таблица доступна по ссылке («Все, у кого есть ссылка»).";
+            try {
+                processSheetData(table);
+                status.innerText = `Лист "${activeSheetName}" загружен. Периодов: ${currentParsedData.dates.length}`;
+                status.style.color = "var(--success)";
+                renderCategoryCharts();
+            } catch (err) {
+                status.innerText = `Ошибка разбора данных: ${err.message}`;
                 status.style.color = "var(--danger)";
-            };
-            document.body.appendChild(script);
-        }
-
-        function cleanupJsonp() {
-            const old = document.getElementById("gviz-jsonp-loader");
-            if (old) old.remove();
+            }
         }
 
         function loadFromPaste() {
@@ -1147,7 +1223,7 @@
                                 beginAtZero: true,
                                 position: 'left',
                                 grid: { color: '#2b3044' },
-                                ticks: { color: '#8b92a5' },
+                                ticks: { color: '#3b82f6' },
                                 title: { display: true, text: 'Клики', color: '#3b82f6' }
                             },
                             yImpressions: {
@@ -1240,7 +1316,7 @@
 
             // 6. ПОДДОМЕНЫ Я + Г
             else if (activeCategory === "subdomains") {
-                const ctxSub = createChartCard("Поддомены: Яндекс vs Google");
+                const ctxSub = createChartCard("Поддомены: Яндекс vs Google (данные с августа)");
                 const yaSub = getMetricSeries("subdomains_ya", ["яндекс", "я"]);
                 const gSub = getMetricSeries("subdomains_google", ["google", "г"]);
 
