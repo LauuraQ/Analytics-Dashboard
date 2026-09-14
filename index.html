@@ -11,15 +11,15 @@
 
     <style>
         :root {
-            --bg-main: #060607;
-            --bg-card: #121214;
-            --bg-input: #1a1a1c;
-            --border-color: #2d2d30;
-            --text-main: #e7e9ea;
-            --text-muted: #71767b;
-            --accent: #ffffff;
-            --accent-hover: #e2e2e2;
-            --danger: #f43f5e;
+            --bg-main: #090a0f;
+            --bg-card: #14161f;
+            --bg-input: #1d202d;
+            --border-color: #2b3044;
+            --text-main: #f1f3f9;
+            --text-muted: #8b92a5;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --danger: #ef4444;
             --success: #10b981;
         }
 
@@ -34,8 +34,7 @@
             color: var(--text-main);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             line-height: 1.5;
-            -webkit-font-smoothing: antialiased;
-            padding: 32px 20px;
+            padding: 24px 20px;
         }
 
         .container {
@@ -44,25 +43,24 @@
         }
 
         .title {
-            margin-bottom: 24px;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 16px;
+            margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 12px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 16px;
         }
 
         h1 {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 700;
-            letter-spacing: -0.5px;
         }
 
         .subtitle {
             color: var(--text-muted);
-            font-size: 14px;
+            font-size: 13px;
             margin-top: 4px;
         }
 
@@ -70,23 +68,13 @@
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            padding: 20px;
+            padding: 18px;
             margin-bottom: 20px;
-        }
-
-        .card-title {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 16px;
-            color: var(--text-main);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
 
         .input-row {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             align-items: center;
             flex-wrap: wrap;
         }
@@ -99,51 +87,50 @@
             border: 1px solid var(--border-color);
             color: var(--text-main);
             border-radius: 8px;
-            padding: 12px 14px;
+            padding: 10px 14px;
             font-size: 14px;
             font-family: inherit;
-            transition: border-color 0.2s;
-        }
-
-        textarea {
-            width: 100%;
-            height: 120px;
-            resize: vertical;
-            display: none;
-            margin-top: 12px;
         }
 
         input:focus,
         textarea:focus {
             outline: none;
-            border-color: var(--text-muted);
+            border-color: var(--accent);
+        }
+
+        textarea {
+            width: 100%;
+            height: 130px;
+            display: none;
+            margin-top: 12px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre;
         }
 
         .btn {
             background-color: var(--bg-input);
             border: 1px solid var(--border-color);
             color: var(--text-main);
-            padding: 12px 20px;
+            padding: 10px 18px;
             border-radius: 8px;
             font-weight: 500;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             transition: all 0.2s;
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            gap: 8px;
-            white-space: nowrap;
+            gap: 6px;
         }
 
         .btn:hover {
             border-color: var(--text-muted);
-            background-color: #222224;
+            background-color: #262a3b;
         }
 
         .btn-primary {
             background-color: var(--accent);
-            color: #000000;
+            color: #ffffff;
             border: none;
             font-weight: 600;
         }
@@ -158,13 +145,18 @@
             margin-top: 10px;
         }
 
+        .tabs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
         .domain-tabs {
             display: flex;
             gap: 8px;
             overflow-x: auto;
-            padding-bottom: 8px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 6px;
         }
 
         .tab-btn {
@@ -174,9 +166,10 @@
             padding: 8px 16px;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s;
+            font-size: 13px;
+            font-weight: 500;
             white-space: nowrap;
+            transition: all 0.2s;
         }
 
         .tab-btn:hover {
@@ -185,8 +178,8 @@
         }
 
         .tab-btn.active {
-            background: var(--bg-input);
-            color: var(--accent);
+            background: var(--accent);
+            color: #ffffff;
             border-color: var(--accent);
             font-weight: 600;
         }
@@ -211,7 +204,7 @@
         }
 
         .menu-item {
-            padding: 12px 16px;
+            padding: 12px 14px;
             background: var(--bg-input);
             border: 1px solid var(--border-color);
             border-radius: 8px;
@@ -231,9 +224,10 @@
         }
 
         .menu-item.active {
-            background: #222226;
+            background: #1f2742;
             border-color: var(--accent);
-            color: var(--accent);
+            color: #60a5fa;
+            font-weight: 600;
         }
 
         .menu-badge {
@@ -246,8 +240,17 @@
 
         .chart-container {
             position: relative;
-            height: 540px;
+            height: 520px;
             width: 100%;
+        }
+
+        .manual-sheets-box {
+            display: none;
+            background: var(--bg-input);
+            border: 1px dashed var(--border-color);
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -257,47 +260,64 @@
     <div class="container">
         <div class="title">
             <div>
-                <h1>Отчетность проектов</h1>
-                <div class="subtitle">Автоматическая визуализация данных Google Таблиц</div>
+                <h1>SEO & Leads Analytics Dashboard</h1>
+                <div class="subtitle">Визуализация данных Google Таблиц</div>
             </div>
         </div>
 
         <div class="card">
             <div class="input-row">
                 <input type="text" id="sheetUrl"
-                    placeholder="Вставьте ссылку на Google Таблицу (доступ «Все, у кого есть ссылка»)" />
+                    placeholder="Вставьте ссылку на Google Таблицу (доступ: «Все, у кого есть ссылка»)" />
                 <button class="btn btn-primary" id="loadBtn" onclick="initDashboard()">Загрузить отчет</button>
-                <button class="btn" onclick="togglePasteArea()">📋 Вставить текстом</button>
+                <button class="btn" onclick="togglePasteArea()">📋 Вставить ячейки текстом</button>
             </div>
 
+            <!-- Вставка текста напрямую -->
             <textarea id="rawPasteArea"
-                placeholder="Вставьте скопированные ячейки из таблицы (с заголовками и данными)..."></textarea>
+                placeholder="Вставьте сюда скопированные данные прямо из Google Таблицы (Ctrl+A -> Ctrl+C)..."></textarea>
             <div id="pasteActionRow" style="display: none; margin-top: 10px;">
-                <button class="btn btn-primary" onclick="loadFromPaste()">Построить график из текста</button>
+                <button class="btn btn-primary" onclick="loadFromPaste()">Построить график из вставленного
+                    текста</button>
+            </div>
+
+            <!-- Ручной ввод вкладок, если Google блокирует прокси -->
+            <div id="manualSheetsBox" class="manual-sheets-box">
+                <div style="font-size: 13px; margin-bottom: 8px; color: var(--text-main);">
+                    <b>Укажите названия листов (вкладок) через запятую</b>, если прокси не может прочесть их
+                    автоматически:
+                </div>
+                <div class="input-row">
+                    <input type="text" id="manualSheetsInput" placeholder="Например: site.ru, site.com, site.by" />
+                    <button class="btn btn-primary" onclick="applyManualSheets()">Применить вкладки</button>
+                </div>
             </div>
 
             <div id="statusText" class="status-msg">
-                Готов к работе. Вставьте ссылку на таблицу или скопированные данные.
+                Готов к загрузке данных. Вставьте ссылку на таблицу или воспользуйтесь текстовой вставкой.
             </div>
         </div>
 
-        <!-- Вкладки сайтов -->
-        <div class="domain-tabs" id="domainTabs" style="display: none;"></div>
+        <!-- Переключатель сайтов (вкладок) -->
+        <div id="tabsSection" style="display: none; margin-bottom: 20px;">
+            <div class="tabs-header">
+                <span style="font-size: 13px; color: var(--text-muted);">Сайты (листы):</span>
+                <button class="btn" style="padding: 4px 10px; font-size: 12px;" onclick="toggleManualSheets()">✏️
+                    Редактировать список листов</button>
+            </div>
+            <div class="domain-tabs" id="domainTabs"></div>
+        </div>
 
-        <!-- Меню + График -->
+        <!-- Рабочая зона: Меню категорий + График -->
         <div class="dashboard-layout" id="dashboardLayout" style="display: none;">
             <div class="card">
                 <div class="card-title">Разделы отчета</div>
                 <div class="sidebar-menu">
-                    <div class="menu-item active" data-category="subdomains" onclick="selectCategory('subdomains')">
-                        <span>Поддомены Я + Г</span>
-                        <span class="menu-badge">Наложение</span>
+                    <div class="menu-item active" data-category="topvisor" onclick="selectCategory('topvisor')">
+                        <span>Топвизор</span>
                     </div>
                     <div class="menu-item" data-category="leads" onclick="selectCategory('leads')">
                         <span>Количество лидов</span>
-                    </div>
-                    <div class="menu-item" data-category="topvisor" onclick="selectCategory('topvisor')">
-                        <span>Топвизор</span>
                     </div>
                     <div class="menu-item" data-category="metrika" onclick="selectCategory('metrika')">
                         <span>Яндекс Метрика</span>
@@ -308,6 +328,10 @@
                     <div class="menu-item" data-category="gsc" onclick="selectCategory('gsc')">
                         <span>Google Search Console</span>
                     </div>
+                    <div class="menu-item" data-category="subdomains" onclick="selectCategory('subdomains')">
+                        <span>Поддомены Я + Г</span>
+                        <span class="menu-badge">Сравнение</span>
+                    </div>
                     <div class="menu-item" data-category="costs" onclick="selectCategory('costs')">
                         <span>Работы и расходы</span>
                     </div>
@@ -316,7 +340,7 @@
 
             <div class="card">
                 <div class="card-title">
-                    <span id="chartHeading">Поддомены: Яндекс vs Google</span>
+                    <span id="chartHeading">Топвизор</span>
                     <span class="subtitle" id="currentDomainLabel"></span>
                 </div>
                 <div class="chart-container">
@@ -330,9 +354,10 @@
         let currentSpreadsheetId = "";
         let currentGid = null;
         let activeSheetName = "";
-        let activeCategory = "subdomains";
+        let activeCategory = "topvisor"; // По умолчанию открываем Топвизор (где данные есть сразу)
         let chartInstance = null;
         let currentParsedData = null;
+        let knownSheets = [];
 
         function togglePasteArea() {
             const area = document.getElementById("rawPasteArea");
@@ -342,9 +367,14 @@
             btnRow.style.display = isHidden ? "block" : "none";
         }
 
+        function toggleManualSheets() {
+            const box = document.getElementById("manualSheetsBox");
+            box.style.display = box.style.display === "none" || !box.style.display ? "block" : "none";
+        }
+
         function extractSpreadsheetId(url) {
             const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
-            return match ? match[1] : (url.length > 20 && !url.includes("/") ? url.trim() : null);
+            return match ? match[1] : (url.length > 25 && !url.includes("/") ? url.trim() : null);
         }
 
         function extractGid(url) {
@@ -352,9 +382,11 @@
             return match ? match[1] : null;
         }
 
+        // Многоуровневый опрос прокси для поиска вкладок
         async function discoverSheets(sheetId) {
             const targetUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/htmlview`;
             const proxies = [
+                (u) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
                 (u) => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
                 (u) => `https://corsproxy.io/?url=${encodeURIComponent(u)}`
             ];
@@ -364,11 +396,11 @@
                 try {
                     const res = await fetch(proxyFn(targetUrl));
                     if (!res.ok) continue;
-                    const json = await res.json();
-                    html = json.contents || json;
-                    if (html && typeof html === "string" && html.length > 200) break;
+                    const data = await res.json().catch(() => null);
+                    html = data && data.contents ? data.contents : (typeof data === "string" ? data : await res.text().catch(() => ""));
+                    if (html && html.length > 300) break;
                 } catch (e) {
-                    console.warn("Прокси недоступен, пробуем следующий...", e);
+                    console.warn("Прокси недоступен, проверяем следующий...");
                 }
             }
 
@@ -380,7 +412,7 @@
 
             doc.querySelectorAll(".sheet-tab, ul#sheet-menu li a, #sheet-menu li").forEach(el => {
                 const txt = el.textContent.trim();
-                if (txt) names.push(txt);
+                if (txt && !names.includes(txt)) names.push(txt);
             });
 
             if (names.length === 0) {
@@ -388,7 +420,7 @@
                 names = [...new Set(matches)];
             }
 
-            return names;
+            return names.filter(n => n.length > 0);
         }
 
         async function initDashboard() {
@@ -396,7 +428,7 @@
             const status = document.getElementById("statusText");
             const loadBtn = document.getElementById("loadBtn");
 
-            // Если в поле ввода случайно вставили скопированные строки таблицы
+            // Если в поле случайно вставили скопированные строки ячеек таблицы
             if (urlInput.includes("\t") || urlInput.includes("\n")) {
                 loadFromRawText(urlInput);
                 return;
@@ -411,31 +443,67 @@
 
             currentSpreadsheetId = sheetId;
             currentGid = extractGid(urlInput);
-            status.innerText = "Сканирование структуры таблицы...";
+            status.innerText = "Поиск листов (сайтов) в таблице...";
             status.style.color = "var(--text-muted)";
             loadBtn.disabled = true;
 
             try {
                 let sheets = await discoverSheets(sheetId);
+
+                // Восстанавливаем из localStorage, если ранее уже настраивали этот документ
+                const cached = localStorage.getItem("sheets_" + sheetId);
+                if (sheets.length === 0 && cached) {
+                    sheets = JSON.parse(cached);
+                }
+
                 if (sheets && sheets.length > 0) {
-                    status.innerText = `Найдено листов: ${sheets.length}`;
+                    knownSheets = sheets;
+                    status.innerText = `Найдено листов: ${sheets.length} (${sheets.join(", ")})`;
                     status.style.color = "var(--success)";
                     renderDomainTabs(sheets);
                 } else {
-                    renderDomainTabs(["Основной лист"]);
+                    // Если прокси заблокированы, загружаем активный лист напрямую через GViz
+                    status.innerText = "Вкладки не обнаружены автоматически. Загружаем активный лист... Вы можете указать имена листов вручную.";
+                    document.getElementById("manualSheetsBox").style.display = "block";
+                    renderDomainTabs([]);
+                    loadSheetDirect(null, currentGid);
                 }
             } catch (err) {
-                renderDomainTabs(["Основной лист"]);
+                console.warn(err);
+                loadSheetDirect(null, currentGid);
             } finally {
                 loadBtn.disabled = false;
             }
         }
 
+        function applyManualSheets() {
+            const val = document.getElementById("manualSheetsInput").value.trim();
+            if (!val) return;
+            const list = val.split(",").map(s => s.trim()).filter(Boolean);
+            if (list.length > 0) {
+                knownSheets = list;
+                localStorage.setItem("sheets_" + currentSpreadsheetId, JSON.stringify(list));
+                renderDomainTabs(list);
+                document.getElementById("manualSheetsBox").style.display = "none";
+            }
+        }
+
         function renderDomainTabs(sheets) {
+            const section = document.getElementById("tabsSection");
             const container = document.getElementById("domainTabs");
             container.innerHTML = "";
-            container.style.display = "flex";
 
+            if (!sheets || sheets.length === 0) {
+                section.style.display = "block";
+                const btn = document.createElement("button");
+                btn.className = "tab-btn active";
+                btn.innerText = "Текущий лист";
+                btn.onclick = () => loadSheetDirect(null, currentGid);
+                container.appendChild(btn);
+                return;
+            }
+
+            section.style.display = "block";
             sheets.forEach((sheet, idx) => {
                 const btn = document.createElement("button");
                 btn.className = `tab-btn ${idx === 0 ? 'active' : ''}`;
@@ -443,30 +511,30 @@
                 btn.onclick = () => {
                     document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
                     btn.classList.add("active");
-                    loadSheet(sheet === "Основной лист" ? "" : sheet);
+                    loadSheetDirect(sheet, null);
                 };
                 container.appendChild(btn);
             });
 
             document.getElementById("dashboardLayout").style.display = "grid";
-            loadSheet(sheets[0] === "Основной лист" ? "" : sheets[0]);
+            loadSheetDirect(sheets[0], null);
         }
 
-        async function loadSheet(sheetName) {
-            activeSheetName = sheetName || "Данные";
-            document.getElementById("currentDomainLabel").innerText = sheetName || "";
+        // Прямой запрос к GViz Google Таблиц
+        async function loadSheetDirect(sheetName, gid) {
+            activeSheetName = sheetName || "Текущий лист";
+            document.getElementById("currentDomainLabel").innerText = activeSheetName;
             const status = document.getElementById("statusText");
 
-            status.innerText = `Загрузка данных...`;
+            status.innerText = `Загрузка данных для "${activeSheetName}"...`;
             status.style.color = "var(--text-muted)";
 
             try {
-                // headers=0 гарантирует получение абсолютно всех строк таблицы без смещений
-                let gvizUrl = `https://docs.google.com/spreadsheets/d/${currentSpreadsheetId}/gviz/tq?tqx=out:json&headers=0`;
+                let gvizUrl = `https://docs.google.com/spreadsheets/d/${currentSpreadsheetId}/gviz/tq?tqx=out:json`;
                 if (sheetName) {
                     gvizUrl += `&sheet=${encodeURIComponent(sheetName)}`;
-                } else if (currentGid) {
-                    gvizUrl += `&gid=${currentGid}`;
+                } else if (gid) {
+                    gvizUrl += `&gid=${gid}`;
                 }
 
                 const res = await fetch(gvizUrl);
@@ -474,17 +542,20 @@
 
                 const jsonStart = rawText.indexOf("{");
                 const jsonEnd = rawText.lastIndexOf("}");
-                const json = JSON.parse(rawText.substring(jsonStart, jsonEnd + 1));
+                if (jsonStart === -1 || jsonEnd === -1) {
+                    throw new Error("Google вернул некорректный ответ. Проверьте права доступа («Все, у кого есть ссылка»).");
+                }
 
-                if (!json || !json.table) throw new Error("Таблица не вернула данных");
+                const json = JSON.parse(rawText.substring(jsonStart, jsonEnd + 1));
+                if (!json || !json.table) throw new Error("Таблица не содержит данных");
 
                 processSheetData(json.table);
-                status.innerText = `Данные успешно загружены. Периодов: ${currentParsedData.dates.length}`;
+                status.innerText = `Лист "${activeSheetName}" успешно загружен! Периодов в отчете: ${currentParsedData.dates.length}`;
                 status.style.color = "var(--success)";
                 renderCurrentChart();
             } catch (e) {
                 console.error(e);
-                status.innerText = `Ошибка при получении данных: ${e.message}. Убедитесь, что таблица доступна по ссылке.`;
+                status.innerText = `Ошибка загрузки: ${e.message}`;
                 status.style.color = "var(--danger)";
             }
         }
@@ -497,7 +568,7 @@
         function loadFromRawText(text) {
             const status = document.getElementById("statusText");
             if (!text || !text.trim()) {
-                status.innerText = "Ошибка: поле текста пустое.";
+                status.innerText = "Поле вставки пустое.";
                 status.style.color = "var(--danger)";
                 return;
             }
@@ -506,21 +577,21 @@
             const matrix = lines.map(line => line.split("\t"));
 
             document.getElementById("dashboardLayout").style.display = "grid";
-            document.getElementById("domainTabs").style.display = "none";
+            document.getElementById("tabsSection").style.display = "none";
             document.getElementById("currentDomainLabel").innerText = "Вставленные данные";
 
             try {
                 parseMatrixData(matrix);
-                status.innerText = `Успешно построено из текста! Периодов: ${currentParsedData.dates.length}`;
+                status.innerText = `Успешно построено из буфера! Периодов: ${currentParsedData.dates.length}`;
                 status.style.color = "var(--success)";
                 renderCurrentChart();
             } catch (err) {
-                status.innerText = `Ошибка парсинга: ${err.message}`;
+                status.innerText = `Ошибка при разборе данных: ${err.message}`;
                 status.style.color = "var(--danger)";
             }
         }
 
-        // Парсинг времени, процентов и чисел
+        // Преобразование времени, секунд, процентов и чисел
         function cleanNumeric(val) {
             if (val === null || val === undefined) return 0;
             let s = String(val).trim();
@@ -528,55 +599,59 @@
 
             s = s.replace("%", "").trim().replace(",", ".");
 
-            // Формат "мм:сс"
+            // Форматы "1:54", "59:06"
             if (/^\d+:\d+(:\d+)?$/.test(s)) {
                 const parts = s.split(":").map(Number);
                 if (parts.length === 2) return parts[0] * 60 + parts[1];
                 if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
             }
 
-            // Формат "1 м 28 с", "33 с" (поддержка и русской, и английской c/m)
+            // Форматы "1 м 28 с", "33 с" (поддержка кириллицы и латиницы)
             if (/[мmсc]/i.test(s)) {
                 const minMatch = s.match(/(\d+)\s*[мm]/i);
                 const secMatch = s.match(/(\d+)\s*[сc]/i);
                 const min = minMatch ? parseInt(minMatch[1], 10) : 0;
                 const sec = secMatch ? parseInt(secMatch[1], 10) : 0;
-                if (minMatch || secMatch) {
-                    return min * 60 + sec;
-                }
+                if (minMatch || secMatch) return min * 60 + sec;
             }
 
             const num = parseFloat(s.replace(/\s+/g, ""));
             return isNaN(num) ? 0 : num;
         }
 
+        // Склейка cols и rows Google API без смещения
         function processSheetData(table) {
-            const matrix = table.rows.map(r => (r.c || []).map(cell => {
+            const colLabels = (table.cols || []).map(c => c ? (c.label || "") : "");
+            const hasLabels = colLabels.some(l => l && l.trim().length > 0);
+
+            const rowData = (table.rows || []).map(r => (r.c || []).map(cell => {
                 if (!cell) return "";
                 return cell.f !== undefined && cell.f !== null ? cell.f : (cell.v !== undefined && cell.v !== null ? cell.v : "");
             }));
+
+            const matrix = hasLabels ? [colLabels, ...rowData] : rowData;
             parseMatrixData(matrix);
         }
 
-        // Надежный парсер шапки любой высоты
+        // Динамический разбор шапки и строк данных
         function parseMatrixData(matrix) {
-            if (!matrix || matrix.length < 2) throw new Error("Слишком мало строк в таблице");
+            if (!matrix || matrix.length < 2) throw new Error("Недостаточно строк в таблице");
 
-            // 1. Поиск строки с датами периодов (колонка 0 с форматом ДД.ММ)
+            // 1. Поиск строки начала дат (формат ДД.ММ в начале строки)
             let dataStartRow = -1;
             for (let r = 0; r < matrix.length; r++) {
-                const cell0 = String(matrix[r][0] || "").trim();
-                if (/\d{2}[./]\d{2}/.test(cell0)) {
+                const val = String(matrix[r][0] || "").trim();
+                if (/\d{2}[./]\d{2}/.test(val)) {
                     dataStartRow = r;
                     break;
                 }
             }
 
             if (dataStartRow === -1) {
-                throw new Error("Не найдена строка начала данных (периоды вида 06.04.26 - 12.04.26)");
+                throw new Error("Не удалось найти строки с периодами (например: 06.04.26 - 12.04.26)");
             }
 
-            // 2. Поиск строки главных категорий
+            // 2. Поиск строки категорий выше строки дат
             let catRowIndex = 0;
             for (let r = 0; r < dataStartRow; r++) {
                 const rowStr = matrix[r].map(c => String(c).toLowerCase()).join(" ");
@@ -589,7 +664,7 @@
             let maxCols = 0;
             matrix.forEach(r => { if (r.length > maxCols) maxCols = r.length; });
 
-            // 3. Сопоставление колонок с категорией и названием метрики
+            // 3. Сопоставление колонок с разделами
             let activeCatKey = null;
             const columns = [];
 
@@ -610,7 +685,7 @@
 
                 if (!activeCatKey) continue;
 
-                // Название метрики ищется снизу вверх по всем строкам заголовка
+                // Поиск названия метрики снизу вверх по строкам шапки
                 let metricName = "";
                 for (let r = dataStartRow - 1; r >= catRowIndex; r--) {
                     const val = String((matrix[r] && matrix[r][c]) || "").replace(/\r?\n/g, " ").trim();
@@ -634,7 +709,7 @@
                 });
             }
 
-            // 4. Сбор дат и чисел
+            // 4. Сбор значений по датам
             const dates = [];
             const store = {
                 leads: {}, topvisor: {}, metrika: {}, webmaster: {},
@@ -677,7 +752,7 @@
             ];
 
             if (activeCategory === "subdomains") {
-                document.getElementById("chartHeading").innerText = "Поддомены: Яндекс vs Google";
+                document.getElementById("chartHeading").innerText = "Поддомены: Яндекс vs Google (данные с августа)";
 
                 Object.keys(store["subdomains_ya"] || {}).forEach(m => {
                     datasets.push({
@@ -685,9 +760,9 @@
                         data: store["subdomains_ya"][m],
                         borderColor: "#f59e0b",
                         backgroundColor: "rgba(245, 158, 11, 0.15)",
-                        borderWidth: 3,
+                        borderWidth: 2.5,
                         pointRadius: 4,
-                        tension: 0.25
+                        tension: 0.2
                     });
                 });
 
@@ -696,11 +771,11 @@
                         label: `Google (поддомены)`,
                         data: store["subdomains_google"][m],
                         borderColor: "#3b82f6",
-                        borderDash: [6, 4],
+                        borderDash: [5, 4],
                         backgroundColor: "rgba(59, 130, 246, 0.15)",
-                        borderWidth: 3,
+                        borderWidth: 2.5,
                         pointRadius: 4,
-                        tension: 0.25
+                        tension: 0.2
                     });
                 });
 
@@ -718,7 +793,7 @@
                         data: vals,
                         borderColor: col,
                         backgroundColor: col + "20",
-                        borderWidth: 2.5,
+                        borderWidth: 2,
                         pointRadius: 3,
                         tension: 0.2,
                         hidden: !hasData
@@ -741,25 +816,25 @@
                     interaction: { mode: 'index', intersect: false },
                     plugins: {
                         legend: {
-                            labels: { color: '#e7e9ea', boxWidth: 14, font: { size: 12 } }
+                            labels: { color: '#f1f3f9', boxWidth: 14, font: { size: 12 } }
                         },
                         tooltip: {
-                            backgroundColor: '#121214',
-                            titleColor: '#e7e9ea',
-                            bodyColor: '#e7e9ea',
-                            borderColor: '#2d2d30',
+                            backgroundColor: '#14161f',
+                            titleColor: '#f1f3f9',
+                            bodyColor: '#8b92a5',
+                            borderColor: '#2b3044',
                             borderWidth: 1
                         }
                     },
                     scales: {
                         x: {
-                            grid: { color: '#2d2d30' },
-                            ticks: { color: '#71767b', maxRotation: 45 }
+                            grid: { color: '#2b3044' },
+                            ticks: { color: '#8b92a5', maxRotation: 45 }
                         },
                         y: {
                             beginAtZero: true,
-                            grid: { color: '#2d2d30' },
-                            ticks: { color: '#71767b' }
+                            grid: { color: '#2b3044' },
+                            ticks: { color: '#8b92a5' }
                         }
                     }
                 }
