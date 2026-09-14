@@ -195,6 +195,7 @@
             font-weight: 600;
         }
 
+        /* Рабочая область: Меню слева + Графики справа */
         .dashboard-layout {
             display: grid;
             grid-template-columns: 260px 1fr;
@@ -292,7 +293,7 @@
 
             <div id="manualSheetsBox" class="manual-sheets-box">
                 <div style="font-size: 13px; margin-bottom: 8px; color: var(--text-main);">
-                    <b>Укажите названия листов через запятую</b>, если Google блокирует доступ к оглавлению:
+                    <b>Укажите названия листов (вкладок) через запятую</b>, если Google блокирует доступ к оглавлению:
                 </div>
                 <div class="input-row">
                     <input type="text" id="manualSheetsInput" placeholder="Например: site.ru, site.com, site.by" />
@@ -482,7 +483,7 @@
             try {
                 let sheets = await discoverSheets(sheetId);
                 const cached = localStorage.getItem("sheets_" + sheetId);
-                if (sheets.length === 0 && cached) {
+                if ((!sheets || sheets.length === 0) && cached) {
                     sheets = JSON.parse(cached);
                 }
 
@@ -542,6 +543,7 @@
                 container.appendChild(btn);
             });
 
+            // Открываем блок дашборда
             document.getElementById("dashboardLayout").style.display = "grid";
             loadSheetDirect(sheets[0], null);
         }
@@ -576,6 +578,9 @@
                 processSheetData(json.table);
                 status.innerText = `Лист "${activeSheetName}" загружен. Периодов: ${currentParsedData.dates.length}`;
                 status.style.color = "var(--success)";
+
+                // ГАРАНТИРУЕМ ОТОБРАЖЕНИЕ РАБОЧЕЙ ОБЛАСТИ
+                document.getElementById("dashboardLayout").style.display = "grid";
                 renderCategoryCharts();
             } catch (e) {
                 status.innerText = `Ошибка загрузки: ${e.message}`;
@@ -662,7 +667,7 @@
             parseMatrixData(matrix);
         }
 
-        // Интеллектуальный парсер колонок по семантическим ключевым словам
+        // Интеллектуальный парсер колонок по смысловым маркерам
         function parseMatrixData(matrix) {
             if (!matrix || matrix.length < 2) throw new Error("Недостаточно строк в таблице");
 
@@ -866,7 +871,7 @@
                     {
                         label: "Яндекс топ 3",
                         data: t.ya_top3 || [],
-                        borderColor: "#ff7a00", // яркий оранжевый сплошной
+                        borderColor: "#ff7a00", // насыщенный оранжевый сплошной
                         backgroundColor: "rgba(255, 122, 0, 0.15)",
                         borderWidth: 3,
                         pointRadius: 4,
@@ -958,7 +963,7 @@
                     options: baseChartOptions
                 }));
 
-                // График 2: Поведение (две оси Y)
+                // График 2: Поведение
                 const ctxBehavior = createChartCard("Яндекс Метрика: Отказы, Глубина и Время на сайте");
                 chartInstances.push(new Chart(ctxBehavior, {
                     type: 'line',
