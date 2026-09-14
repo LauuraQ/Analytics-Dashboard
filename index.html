@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SEO & Leads Analytics Dashboard</title>
-    <!-- Предотвращение ошибки favicon 404 -->
+    <!-- Предотвращение ошибки favicon 404 на GitHub Pages -->
     <link rel="icon" href="data:,">
 
     <!-- Chart.js -->
@@ -164,7 +164,7 @@
             background: rgba(239, 68, 68, 0.1);
             border: 1px solid rgba(239, 68, 68, 0.3);
             border-radius: 8px;
-            padding: 12px 16px;
+            padding: 14px 16px;
             color: #fca5a5;
         }
 
@@ -271,7 +271,7 @@
             background: rgba(59, 130, 246, 0.05);
         }
 
-        /* Рабочая область: Меню слева + Графики справа */
+        /* Меню слева + Графики справа */
         .dashboard-layout {
             display: grid;
             grid-template-columns: 260px 1fr;
@@ -359,14 +359,14 @@
             </div>
 
             <div id="statusText" class="status-msg">
-                Готов к загрузке. Вставьте ссылку на таблицу или скопированные данные.
+                Готов к загрузке. Вставьте ссылку на таблицу или используйте вставку текста.
             </div>
         </div>
 
         <!-- Табы для переключения между листами -->
         <div id="tabsSection" class="tabs-card" style="display: none;">
             <div class="tabs-header">
-                <span class="tabs-header-title">Листы таблицы (выберите лист для графиков):</span>
+                <span class="tabs-header-title">Вкладки таблицы (кликните для построения графиков):</span>
             </div>
             <div class="domain-tabs-wrap">
                 <div class="domain-tabs" id="domainTabs"></div>
@@ -374,7 +374,7 @@
             </div>
         </div>
 
-        <!-- Рабочая область дашборда -->
+        <!-- Рабочая область -->
         <div class="dashboard-layout" id="dashboardLayout" style="display: none;">
             <div class="sidebar-menu">
                 <div class="menu-item active" data-category="topvisor" onclick="selectCategory('topvisor')">
@@ -470,46 +470,6 @@
             return rows;
         }
 
-        // Поиск листов таблицы без падений на мертвых прокси
-        async function discoverSheets(sheetId) {
-            const targetUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/pubhtml`;
-            let html = "";
-
-            try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 3500);
-                const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`, {
-                    signal: controller.signal
-                });
-                clearTimeout(timeoutId);
-                if (res.ok) {
-                    const json = await res.json();
-                    html = json && json.contents ? json.contents : "";
-                }
-            } catch (e) {
-                // Тихий пропуск сетевых сбоев сторонних прокси
-            }
-
-            if (!html || html.length < 200) return [];
-
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, "text/html");
-            let names = [];
-
-            doc.querySelectorAll(".sheet-tab, ul#sheet-menu li a, #sheet-menu li, li[id^='sheet-button-'] a").forEach(el => {
-                const txt = el.textContent.trim();
-                if (txt && !names.includes(txt)) names.push(txt);
-            });
-
-            if (names.length === 0) {
-                const matches = [...html.matchAll(/name:\s*"([^"\\]+)"/g)].map(m => m[1]);
-                names = [...new Set(matches)];
-            }
-
-            const forbidden = ["Arial", "Roboto", "Google", "Sheets", "Docs", "true", "false", "undefined"];
-            return names.filter(n => !forbidden.includes(n) && n.length < 50);
-        }
-
         async function initDashboard() {
             const urlInput = document.getElementById("sheetUrl").value.trim();
             const status = document.getElementById("statusText");
@@ -535,27 +495,22 @@
             status.style.color = "var(--text-muted)";
             loadBtn.disabled = true;
 
-            try {
-                let sheets = await discoverSheets(sheetId);
-                const cached = localStorage.getItem("sheets_" + sheetId);
-                if ((!sheets || sheets.length === 0) && cached) {
-                    try { sheets = JSON.parse(cached); } catch (e) { }
+            // Восстановление сохраненных табов пользователя для этой таблицы
+            const cached = localStorage.getItem("sheets_" + sheetId);
+            if (cached) {
+                try {
+                    currentSheetsList = JSON.parse(cached);
+                } catch (e) {
+                    currentSheetsList = [];
                 }
-
-                if (sheets && sheets.length > 0) {
-                    currentSheetsList = sheets;
-                    localStorage.setItem("sheets_" + sheetId, JSON.stringify(sheets));
-                    renderDomainTabs(sheets, sheets[0]);
-                } else {
-                    currentSheetsList = ["Лист 1"];
-                    renderDomainTabs(currentSheetsList, "Лист 1");
-                }
-            } catch (err) {
-                currentSheetsList = ["Лист 1"];
-                renderDomainTabs(currentSheetsList, "Лист 1");
-            } finally {
-                loadBtn.disabled = false;
             }
+
+            if (!currentSheetsList || currentSheetsList.length === 0) {
+                currentSheetsList = ["Основной лист"];
+            }
+
+            renderDomainTabs(currentSheetsList, currentSheetsList[0]);
+            loadBtn.disabled = false;
         }
 
         function renderDomainTabs(sheets, activeName) {
@@ -563,10 +518,6 @@
             const container = document.getElementById("domainTabs");
             container.innerHTML = "";
             section.style.display = "block";
-
-            if (!sheets || sheets.length === 0) {
-                sheets = ["Лист 1"];
-            }
 
             sheets.forEach((sheet) => {
                 const btn = document.createElement("button");
@@ -592,27 +543,27 @@
                 btn.onclick = () => {
                     document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
                     btn.classList.add("active");
-                    loadSheetDirect(sheet, null);
+                    loadSheetDirect(sheet);
                 };
 
                 container.appendChild(btn);
             });
 
             document.getElementById("dashboardLayout").style.display = "grid";
-
-            // Единственный вызов загрузки
-            if (activeName) {
-                loadSheetDirect(activeName, currentGid);
-            }
+            loadSheetDirect(activeName);
         }
 
         function promptAddTab() {
-            const name = prompt("Введите название листа (вкладки) из вашей Google Таблицы:\n(можно ввести несколько через запятую)", "");
+            const name = prompt("Введите точное название вкладки (листа) из Google Таблицы:\n(можно несколько через запятую, например: site.ru, site.com)", "");
             if (!name || !name.trim()) return;
 
             const newSheets = name.split(",").map(s => s.trim()).filter(Boolean);
             newSheets.forEach(s => {
                 if (!currentSheetsList.includes(s)) {
+                    // Удаляем временный плейсхолдер "Основной лист", если пользователь добавляет свои
+                    if (currentSheetsList.length === 1 && currentSheetsList[0] === "Основной лист") {
+                        currentSheetsList = [];
+                    }
                     currentSheetsList.push(s);
                 }
             });
@@ -627,72 +578,113 @@
 
         function removeTab(sheetName) {
             currentSheetsList = currentSheetsList.filter(s => s !== sheetName);
+            if (currentSheetsList.length === 0) {
+                currentSheetsList = ["Основной лист"];
+            }
             if (currentSpreadsheetId) {
                 localStorage.setItem("sheets_" + currentSpreadsheetId, JSON.stringify(currentSheetsList));
             }
-            const nextActive = currentSheetsList[0] || "Лист 1";
-            renderDomainTabs(currentSheetsList, nextActive);
+            renderDomainTabs(currentSheetsList, currentSheetsList[0]);
         }
 
-        async function loadSheetDirect(sheetName, gid) {
-            activeSheetName = sheetName || "Текущий лист";
+        // Резервный JSONP-загрузчик для обхода CORS и ограничений Google Workspace
+        function fetchViaJsonp(url) {
+            return new Promise((resolve, reject) => {
+                const callbackName = "gviz_cb_" + Math.floor(Math.random() * 1000000);
+                const script = document.createElement("script");
+
+                window[callbackName] = function (data) {
+                    cleanup();
+                    resolve(data);
+                };
+
+                function cleanup() {
+                    delete window[callbackName];
+                    if (script.parentNode) script.parentNode.removeChild(script);
+                }
+
+                script.onerror = function () {
+                    cleanup();
+                    reject(new Error("JSONP_ERROR"));
+                };
+
+                script.src = `${url}&tqx=responseHandler:${callbackName}`;
+                document.body.appendChild(script);
+
+                setTimeout(() => {
+                    if (window[callbackName]) {
+                        cleanup();
+                        reject(new Error("TIMEOUT"));
+                    }
+                }, 8000);
+            });
+        }
+
+        async function loadSheetDirect(sheetName) {
+            activeSheetName = sheetName || "Основной лист";
             const status = document.getElementById("statusText");
 
             status.className = "status-msg";
             status.innerText = `Загрузка данных для вкладки "${activeSheetName}"...`;
             status.style.color = "var(--text-muted)";
 
+            let baseGvizUrl = `https://docs.google.com/spreadsheets/d/${currentSpreadsheetId}/gviz/tq?`;
+
+            // Если вкладка не является служебной заглушкой, запрашиваем конкретное имя листа
+            if (activeSheetName && activeSheetName !== "Основной лист") {
+                baseGvizUrl += `sheet=${encodeURIComponent(activeSheetName)}`;
+            } else if (currentGid) {
+                baseGvizUrl += `gid=${currentGid}`;
+            }
+
             try {
-                let gvizUrl = `https://docs.google.com/spreadsheets/d/${currentSpreadsheetId}/gviz/tq?tqx=out:json`;
+                let tableData = null;
 
-                // Если указан конкретный лист (отличный от системного плейсхолдера)
-                if (sheetName && sheetName !== "Лист 1") {
-                    gvizUrl += `&sheet=${encodeURIComponent(sheetName)}`;
-                } else if (gid) {
-                    gvizUrl += `&gid=${gid}`;
-                }
-
-                const res = await fetch(gvizUrl);
-
-                // Детальная обработка 404 ошибки доступа Google
-                if (!res.ok) {
-                    if (res.status === 404) {
-                        throw new Error("ACCESS_404");
+                // 1. Попытка через стандартный fetch
+                try {
+                    const res = await fetch(`${baseGvizUrl}&tqx=out:json`);
+                    if (res.ok) {
+                        const rawText = await res.text();
+                        const jsonStart = rawText.indexOf("{");
+                        const jsonEnd = rawText.lastIndexOf("}");
+                        if (jsonStart !== -1 && jsonEnd !== -1) {
+                            const json = JSON.parse(rawText.substring(jsonStart, jsonEnd + 1));
+                            if (json && json.table) {
+                                tableData = json.table;
+                            }
+                        }
                     }
-                    throw new Error(`Код сервера HTTP ${res.status}`);
+                } catch (fetchErr) {
+                    // Переход к JSONP при сетевых ограничениях
                 }
 
-                const rawText = await res.text();
-                const jsonStart = rawText.indexOf("{");
-                const jsonEnd = rawText.lastIndexOf("}");
-                if (jsonStart === -1 || jsonEnd === -1) {
-                    throw new Error("ACCESS_404");
+                // 2. Резервная попытка через JSONP (нативно поддерживается Google и работает на GitHub Pages)
+                if (!tableData) {
+                    const jsonpResult = await fetchViaJsonp(baseGvizUrl);
+                    if (jsonpResult && jsonpResult.table) {
+                        tableData = jsonpResult.table;
+                    }
                 }
 
-                const json = JSON.parse(rawText.substring(jsonStart, jsonEnd + 1));
-                if (!json || !json.table) throw new Error("Таблица не содержит данных");
+                if (!tableData) {
+                    throw new Error("NOT_FOUND");
+                }
 
-                processSheetData(json.table);
+                processSheetData(tableData);
                 status.className = "status-msg";
-                status.innerText = `Лист "${activeSheetName}" успешно загружен! Периодов: ${currentParsedData.dates.length}`;
+                status.innerText = `Вкладка "${activeSheetName}" загружена! Строк данных: ${currentParsedData.dates.length}`;
                 status.style.color = "var(--success)";
 
                 document.getElementById("dashboardLayout").style.display = "grid";
                 renderCategoryCharts();
             } catch (e) {
-                if (e.message === "ACCESS_404") {
-                    status.className = "status-msg error-box";
-                    status.innerHTML = `
-                        <b>⚠️ Ошибка доступа Google (HTTP 404):</b><br>
-                        1. Откройте вашу Google Таблицу и нажмите кнопку <b>«Поделиться» (Share)</b> вверху справа.<br>
-                        2. Измените «Ограниченный доступ» на <b>«Все, у кого есть ссылка» (Читатель)</b>.<br>
-                        <i>(Или нажмите кнопку «📋 Вставить ячейки текстом» выше, чтобы отобразить данные без открытия общего доступа).</i>
-                    `;
-                } else {
-                    status.className = "status-msg";
-                    status.innerText = `Ошибка листа "${activeSheetName}": ${e.message}`;
-                    status.style.color = "var(--danger)";
-                }
+                status.className = "status-msg error-box";
+                status.innerHTML = `
+                    <b>Не удалось получить данные для вкладки «${activeSheetName}»:</b><br>
+                    1. Убедитесь, что название вкладки совпадает в точности с вкладкой внизу вашей Google Таблицы. Нажмите <b>«+ Добавить лист»</b> и укажите точное название.<br>
+                    2. Если таблица создана на корпоративном аккаунте Google Workspace, включите публикацию: в меню таблицы выберите <b>«Файл» ➔ «Поделиться» ➔ «Опубликовать в интернете» ➔ кнопка «Опубликовать»</b>.<br>
+                    3. Либо нажмите кнопку <b>«📋 Вставить ячейки текстом»</b> выше и скопируйте ячейки (Ctrl+A -> Ctrl+C).
+                `;
             }
         }
 
@@ -718,12 +710,12 @@
             try {
                 parseMatrixData(matrix);
                 status.className = "status-msg";
-                status.innerText = `Графики построены из текста! Периодов: ${currentParsedData.dates.length}`;
+                status.innerText = `Графики успешно построены из текста! Периодов: ${currentParsedData.dates.length}`;
                 status.style.color = "var(--success)";
                 renderCategoryCharts();
             } catch (err) {
                 status.className = "status-msg";
-                status.innerText = `Ошибка разбора: ${err.message}`;
+                status.innerText = `Ошибка разбора данных: ${err.message}`;
                 status.style.color = "var(--danger)";
             }
         }
