@@ -91,8 +91,6 @@
         }
 
         input {
-            flex: 1;
-            min-width: 300px;
             background-color: var(--bg-input);
             border: 1px solid var(--border-color);
             color: var(--text-main);
@@ -108,19 +106,35 @@
         }
 
         .btn {
-            background-color: var(--accent);
-            color: #000000;
-            border: none;
-            font-weight: 600;
-            padding: 12px 24px;
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 10px 18px;
             border-radius: 8px;
+            font-weight: 500;
             cursor: pointer;
             font-size: 14px;
-            transition: background-color 0.2s;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             white-space: nowrap;
         }
 
         .btn:hover {
+            border-color: var(--text-muted);
+            background-color: #222224;
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: #000000;
+            border: none;
+            font-weight: 600;
+        }
+
+        .btn-primary:hover {
             background-color: var(--accent-hover);
         }
 
@@ -130,13 +144,20 @@
             margin-top: 10px;
         }
 
+        /* Вкладки доменов */
+        .tabs-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            overflow-x: auto;
+        }
+
         .domain-tabs {
             display: flex;
             gap: 8px;
-            overflow-x: auto;
-            padding-bottom: 8px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid var(--border-color);
         }
 
         .tab-btn {
@@ -163,6 +184,12 @@
             font-weight: 600;
         }
 
+        .btn-add-tab {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        /* Раскладка дашборда */
         .dashboard-layout {
             display: grid;
             grid-template-columns: 290px 1fr;
@@ -222,7 +249,6 @@
             width: 100%;
         }
 
-        /* Стилизация скроллбара */
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -252,22 +278,26 @@
         <!-- Ввод ссылки -->
         <div class="card">
             <div class="input-row">
-                <input type="text" id="sheetUrl" placeholder="Ссылка на Google Таблицу"
+                <input type="text" id="sheetUrl" style="flex: 1; min-width: 300px;"
+                    placeholder="Ссылка на Google Таблицу"
                     value="https://docs.google.com/spreadsheets/d/1QUidv9CoxZRpAwpM8AYEfD9ShWR1hEs9sjLmSQi7k_8/edit" />
-                <button class="btn" id="loadBtn" onclick="initDashboard()">Загрузить отчет</button>
+                <button class="btn btn-primary" id="loadBtn" onclick="initDashboard()">Загрузить отчет</button>
             </div>
             <div id="statusText" class="status-msg">
                 Введите ссылку и нажмите кнопку «Загрузить отчет».
             </div>
         </div>
 
-        <!-- Вкладки сайтов-доменов -->
-        <div class="domain-tabs" id="domainTabs" style="display: none;"></div>
+        <!-- Вкладки сайтов и кнопка добавления -->
+        <div class="tabs-wrapper" id="tabsWrapper" style="display: none;">
+            <div class="domain-tabs" id="domainTabs"></div>
+            <button class="btn btn-add-tab" onclick="promptAddDomain()">+ Добавить сайт</button>
+        </div>
 
         <!-- Область дашборда -->
         <div class="dashboard-layout" id="dashboardLayout" style="display: none;">
 
-            <!-- Меню слева -->
+            <!-- Сайдбар категорий -->
             <div class="card">
                 <div class="card-title">Разделы отчета</div>
                 <div class="sidebar-menu">
@@ -298,7 +328,7 @@
                 </div>
             </div>
 
-            <!-- График справа -->
+            <!-- График -->
             <div class="card">
                 <div class="card-title">
                     <span id="chartHeading">Поддомены: Яндекс vs Google</span>
@@ -317,6 +347,7 @@
         let activeCategory = "subdomains";
         let chartInstance = null;
         let currentParsedData = null;
+        let knownSheets = [];
 
         const DOMAIN_REGEX = /\.[a-zа-я0-9-]{2,}$/i;
 
@@ -325,26 +356,50 @@
             return match ? match[1] : null;
         }
 
-        // Авто-поиск листов через прокси
+        function extractGid(url) {
+            const match = url.match(/[#&]gid=([0-9]+)/);
+            return match ? match[1] : null;
+        }
+
+        /**
+         * Запрос через JSONP: браузер не применяет CORS-проверку к тегу <script>,
+         * поэтому запрос не блокируется на GitHub Pages.
+         */
+        function fetchAllOriginsJSONP(url) {
+            return new Promise((resolve, reject) => {
+                const cbName = 'allorigins_cb_' + Math.round(Math.random() * 1000000);
+                const script = document.createElement('script');
+
+                const timeout = setTimeout(() => {
+                    cleanup();
+                    reject(new Error("Таймаут прокси"));
+                }, 6000);
+
+                function cleanup() {
+                    clearTimeout(timeout);
+                    delete window[cbName];
+                    if (script.parentNode) script.parentNode.removeChild(script);
+                }
+
+                window[cbName] = (data) => {
+                    cleanup();
+                    resolve(data.contents);
+                };
+
+                script.src = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}&callback=${cbName}`;
+                script.onerror = () => {
+                    cleanup();
+                    reject(new Error("Ошибка загрузки скрипта JSONP"));
+                };
+                document.body.appendChild(script);
+            });
+        }
+
+        // Авто-поиск листов через JSONP
         async function discoverSheets(sheetId) {
             const targetUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/htmlview`;
-            const proxies = [
-                (u) => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
-                (u) => `https://corsproxy.io/?url=${encodeURIComponent(u)}`
-            ];
-
-            let html = "";
-            for (const p of proxies) {
-                try {
-                    const res = await fetch(p(targetUrl));
-                    if (!res.ok) continue;
-                    const json = await res.json();
-                    html = json.contents || json;
-                    if (typeof html === "string" && html.length > 200) break;
-                } catch (e) { }
-            }
-
-            if (!html) throw new Error("Не удалось прочесть htmlview");
+            const html = await fetchAllOriginsJSONP(targetUrl);
+            if (!html || typeof html !== "string") throw new Error("Пустой HTML");
 
             const doc = new DOMParser().parseFromString(html, "text/html");
             let names = [];
@@ -375,28 +430,47 @@
             }
 
             currentSpreadsheetId = sheetId;
-            status.innerText = "Поиск листов проектов...";
+            const explicitGid = extractGid(urlInput);
+
+            status.innerText = "Подключение к таблице...";
             status.style.color = "var(--text-muted)";
             loadBtn.disabled = true;
 
-            try {
-                let sheets = await discoverSheets(sheetId);
-                if (!sheets.length) sheets = ["Лист1"];
-                status.innerText = `Найдено сайтов: ${sheets.length}`;
-                status.style.color = "var(--success)";
-                renderDomainTabs(sheets);
-            } catch (err) {
-                status.innerText = "Не удалось перечислить все листы, открываем первый доступный...";
-                renderDomainTabs(["Лист1"]);
-            } finally {
-                loadBtn.disabled = false;
+            // 1. Проверяем сохраненные ранее сайты в браузере для этой таблицы
+            const saved = localStorage.getItem("sheets_" + sheetId);
+            if (saved) {
+                try { knownSheets = JSON.parse(saved); } catch (e) { knownSheets = []; }
             }
+
+            // 2. Пробуем автодетект через JSONP
+            try {
+                const detected = await discoverSheets(sheetId);
+                if (detected && detected.length > 0) {
+                    // Объединяем с сохраненными
+                    knownSheets = [...new Set([...knownSheets, ...detected])];
+                    localStorage.setItem("sheets_" + sheetId, JSON.stringify(knownSheets));
+                }
+            } catch (err) {
+                console.warn("Автодетект через прокси не ответил, используем локальные/прямые данные", err);
+            }
+
+            // 3. Если листы так и не известны:
+            if (knownSheets.length === 0) {
+                // Если в ссылке был gid=..., создаем ярлык по gid, иначе — "Основной лист"
+                knownSheets = explicitGid ? [`gid=${explicitGid}`] : ["Основной отчет"];
+            }
+
+            renderDomainTabs(knownSheets);
+            status.innerText = `Подключено. Открыт сайт: ${knownSheets[0]}`;
+            status.style.color = "var(--success)";
+            loadBtn.disabled = false;
         }
 
         function renderDomainTabs(sheets) {
+            const wrapper = document.getElementById("tabsWrapper");
             const container = document.getElementById("domainTabs");
             container.innerHTML = "";
-            container.style.display = "flex";
+            wrapper.style.display = "flex";
 
             sheets.forEach((sheet, idx) => {
                 const btn = document.createElement("button");
@@ -414,38 +488,59 @@
             loadSheet(sheets[0]);
         }
 
-        // Загрузка данных таблицы через GViz API
-        async function loadSheet(sheetName) {
-            document.getElementById("currentDomainLabel").innerText = sheetName;
+        function promptAddDomain() {
+            const name = prompt("Введите имя листа Google Таблицы (например, site.ru):");
+            if (!name || !name.trim()) return;
+            const cleanName = name.trim();
+            if (!knownSheets.includes(cleanName)) {
+                knownSheets.push(cleanName);
+                localStorage.setItem("sheets_" + currentSpreadsheetId, JSON.stringify(knownSheets));
+                renderDomainTabs(knownSheets);
+            }
+        }
+
+        // Загрузка данных таблицы (нативный fetch с Google GViz API)
+        async function loadSheet(sheetIdentifier) {
+            document.getElementById("currentDomainLabel").innerText = sheetIdentifier;
             const status = document.getElementById("statusText");
-            status.innerText = `Загрузка данных для "${sheetName}"...`;
+            status.innerText = `Загрузка данных для "${sheetIdentifier}"...`;
             status.style.color = "var(--text-muted)";
 
             try {
-                const gvizUrl = `https://docs.google.com/spreadsheets/d/${currentSpreadsheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
+                let gvizUrl = `https://docs.google.com/spreadsheets/d/${currentSpreadsheetId}/gviz/tq?tqx=out:json`;
+
+                if (sheetIdentifier.startsWith("gid=")) {
+                    gvizUrl += `&${sheetIdentifier}`;
+                } else if (sheetIdentifier !== "Основной отчет") {
+                    gvizUrl += `&sheet=${encodeURIComponent(sheetIdentifier)}`;
+                }
+                // Если "Основной отчет", параметр &sheet не передаем — Google сам отдает первый лист книги!
+
                 const res = await fetch(gvizUrl);
                 const raw = await res.text();
 
                 const jsonStart = raw.indexOf("{");
                 const jsonEnd = raw.lastIndexOf("}");
-                const json = JSON.parse(raw.substring(jsonStart, jsonEnd + 1));
+                if (jsonStart === -1 || jsonEnd === -1) {
+                    throw new Error("Неверный формат ответа от Google Sheets");
+                }
 
+                const json = JSON.parse(raw.substring(jsonStart, jsonEnd + 1));
                 if (!json || !json.table) throw new Error("Таблица пуста");
 
                 processSheetData(json.table);
                 updateCategoryBadges();
                 renderCurrentChart();
 
-                status.innerText = `Сайт "${sheetName}" успешно загружен.`;
+                status.innerText = `Сайт "${sheetIdentifier}" успешно загружен.`;
                 status.style.color = "var(--success)";
             } catch (e) {
                 console.error(e);
-                status.innerText = `Ошибка при получении данных с листа "${sheetName}".`;
+                status.innerText = `Не удалось загрузить данные листа "${sheetIdentifier}". Проверьте точное имя вкладки.`;
                 status.style.color = "var(--danger)";
             }
         }
 
-        // Очистка числовых значений
         function cleanNumeric(val) {
             if (val === null || val === undefined) return 0;
             if (typeof val === 'number') return isNaN(val) ? 0 : val;
@@ -455,12 +550,10 @@
 
             s = s.replace("%", "").trim().replace(",", ".");
 
-            // Формат минут и секунд "1:54"
             if (s.includes(":") && !s.includes(" ")) {
                 const p = s.split(":");
                 return p.length === 2 ? parseFloat(p[0]) * 60 + parseFloat(p[1]) : parseFloat(p[0]) || 0;
             }
-            // Формат "1 м 28 c"
             if (s.includes("м") || s.includes("c")) {
                 const m = s.match(/(\d+)\s*м/);
                 const sec = s.match(/(\d+)\s*c/);
@@ -472,11 +565,9 @@
         }
 
         /**
-         * ДИНАМИЧЕСКИЙ ПАРСЕР ТАБЛИЦЫ
-         * Не привязан к номерам строк и надежно разбирает шапку
+         * Динамический парсер колонок и данных
          */
         function processSheetData(table) {
-            // 1. Собираем матрицу всех ячеек
             const matrix = [];
             table.rows.forEach(r => {
                 const row = [];
@@ -492,7 +583,7 @@
 
             if (matrix.length < 2) return;
 
-            // 2. Ищем первую строку с датами периодов (вид "06.04.26 - 12.04.26")
+            // 1. Поиск строки с датами (первая строка вида "06.04.26 - 12.04.26")
             let dataStartRow = -1;
             for (let r = 0; r < matrix.length; r++) {
                 const firstCell = String(matrix[r][0] || "").trim();
@@ -503,7 +594,7 @@
             }
             if (dataStartRow === -1) dataStartRow = 3;
 
-            // 3. Ищем строку, в которой находятся категории
+            // 2. Поиск строки с главными разделами отчета
             let catRowIdx = 0;
             let maxMatches = -1;
 
@@ -527,11 +618,10 @@
             const columns = [];
             let activeCatKey = null;
 
-            // Максимальное количество колонок в таблице
             let maxCols = 0;
             matrix.forEach(row => { if (row.length > maxCols) maxCols = row.length; });
 
-            // 4. Разбираем колонки (Forward-fill категорий)
+            // 3. Forward-fill разделов и привязка метрик
             for (let c = 1; c < maxCols; c++) {
                 const topCell = String(catRow[c] || "").trim().toLowerCase();
 
@@ -542,11 +632,10 @@
                 else if (topCell.includes("google search") || topCell.includes("gsc") || topCell.includes("search console")) activeCatKey = "gsc";
                 else if (topCell.includes("поддомены я") || topCell.includes("поддомен я")) activeCatKey = "subdomains_ya";
                 else if (topCell.includes("поддомены г") || topCell.includes("поддомен г") || topCell.includes("поддомены g")) activeCatKey = "subdomains_google";
-                else if (topCell.includes("расход") || topCell.includes("работ")) activeCatKey = null; // Пропускаем колонки расходов
+                else if (topCell.includes("расход") || topCell.includes("работ")) activeCatKey = null;
 
                 if (!activeCatKey) continue;
 
-                // Ищем имя метрики: самое нижнее непустое значение в шапке для этой колонки
                 let metricName = "";
                 for (let r = dataStartRow - 1; r > catRowIdx; r--) {
                     const val = String(matrix[r][c] || "").replace(/\n/g, " ").trim();
@@ -556,12 +645,11 @@
                     }
                 }
 
-                // Если подстроки нет (как для Лидов или Поддоменов), берем имя категории
                 if (!metricName) {
                     if (activeCatKey === "leads") metricName = "Лиды";
                     else if (activeCatKey === "subdomains_ya") metricName = "Поддомены Я";
                     else if (activeCatKey === "subdomains_google") metricName = "Поддомены Г";
-                    else metricName = `Колонка ${c}`;
+                    else metricName = `Метрика ${c}`;
                 }
 
                 columns.push({
@@ -571,7 +659,7 @@
                 });
             }
 
-            // 5. Заполняем ряды данных
+            // 4. Сбор значений по датам
             const dates = [];
             const store = {
                 leads: {}, topvisor: {}, metrika: {}, webmaster: {},
@@ -595,7 +683,6 @@
             currentParsedData = { dates, store, columns };
         }
 
-        // Обновление бейджей количества метрик в сайдбаре
         function updateCategoryBadges() {
             if (!currentParsedData) return;
             const s = currentParsedData.store;
@@ -617,7 +704,6 @@
             renderCurrentChart();
         }
 
-        // Построение графика в Chart.js
         function renderCurrentChart() {
             if (!currentParsedData) return;
             const ctx = document.getElementById("mainChart").getContext("2d");
@@ -629,14 +715,13 @@
                 "#8b5cf6", "#06b6d4", "#f97316", "#14b8a6", "#e11d48"
             ];
 
-            // Совмещенный режим: Поддомены Яндекс + Google
             if (activeCategory === "subdomains") {
                 document.getElementById("chartHeading").innerText = "Поддомены: Яндекс vs Google";
 
-                // Яндекс (сплошная линия)
+                // Яндекс
                 Object.keys(store.subdomains_ya || {}).forEach(m => {
                     datasets.push({
-                        label: `Яндекс: ${m}`,
+                        label: `Яндекс (${m})`,
                         data: store.subdomains_ya[m],
                         borderColor: "#f59e0b",
                         backgroundColor: "rgba(245, 158, 11, 0.15)",
@@ -645,10 +730,10 @@
                     });
                 });
 
-                // Google (синий пунктир)
+                // Google
                 Object.keys(store.subdomains_google || {}).forEach(m => {
                     datasets.push({
-                        label: `Google: ${m}`,
+                        label: `Google (${m})`,
                         data: store.subdomains_google[m],
                         borderColor: "#3b82f6",
                         borderDash: [6, 4],
@@ -659,7 +744,6 @@
                 });
 
             } else {
-                // Одиночные разделы (Лиды, Топвизор, Метрика...)
                 const target = store[activeCategory] || {};
                 let cIdx = 0;
 
@@ -693,10 +777,7 @@
                     interaction: { mode: 'index', intersect: false },
                     plugins: {
                         legend: {
-                            labels: {
-                                color: '#e7e9ea',
-                                font: { size: 12 }
-                            }
+                            labels: { color: '#e7e9ea', font: { size: 12 } }
                         },
                         tooltip: {
                             backgroundColor: '#121214',
@@ -722,7 +803,6 @@
             });
         }
 
-        // Автостарт при открытии
         window.addEventListener("DOMContentLoaded", () => {
             const urlInput = document.getElementById("sheetUrl").value.trim();
             if (urlInput) initDashboard();
