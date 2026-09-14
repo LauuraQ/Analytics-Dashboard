@@ -11,15 +11,15 @@
 
     <style>
         :root {
-            --bg-main: #090a0f;
-            --bg-card: #14161f;
-            --bg-input: #1d202d;
-            --border-color: #2b3044;
-            --text-main: #f1f3f9;
-            --text-muted: #8b92a5;
-            --accent: #3b82f6;
-            --accent-hover: #2563eb;
-            --danger: #ef4444;
+            --bg-main: #060607;
+            --bg-card: #121214;
+            --bg-input: #1a1a1c;
+            --border-color: #2d2d30;
+            --text-main: #e7e9ea;
+            --text-muted: #71767b;
+            --accent: #ffffff;
+            --accent-hover: #e2e2e2;
+            --danger: #f43f5e;
             --success: #10b981;
         }
 
@@ -34,33 +34,35 @@
             color: var(--text-main);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             line-height: 1.5;
-            padding: 24px 20px;
+            -webkit-font-smoothing: antialiased;
+            padding: 32px 20px;
         }
 
         .container {
-            max-width: 1440px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
         .title {
-            margin-bottom: 20px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 12px;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 16px;
         }
 
         h1 {
-            font-size: 22px;
+            font-size: 24px;
             font-weight: 700;
+            letter-spacing: -0.5px;
         }
 
         .subtitle {
             color: var(--text-muted);
-            font-size: 13px;
+            font-size: 14px;
             margin-top: 4px;
         }
 
@@ -68,14 +70,14 @@
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            padding: 18px;
+            padding: 20px;
             margin-bottom: 20px;
         }
 
         .card-title {
-            font-size: 15px;
+            font-size: 16px;
             font-weight: 600;
-            margin-bottom: 14px;
+            margin-bottom: 16px;
             color: var(--text-main);
             display: flex;
             justify-content: space-between;
@@ -84,64 +86,54 @@
 
         .input-row {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             align-items: center;
             flex-wrap: wrap;
         }
 
-        input,
-        textarea {
+        input {
             flex: 1;
-            min-width: 280px;
+            min-width: 300px;
             background-color: var(--bg-input);
             border: 1px solid var(--border-color);
             color: var(--text-main);
             border-radius: 8px;
-            padding: 10px 14px;
+            padding: 12px 14px;
             font-size: 14px;
             font-family: inherit;
+            transition: border-color 0.2s;
         }
 
-        input:focus,
-        textarea:focus {
+        input:focus {
             outline: none;
-            border-color: var(--accent);
-        }
-
-        textarea {
-            width: 100%;
-            height: 130px;
-            display: none;
-            margin-top: 12px;
-            font-family: monospace;
-            font-size: 12px;
-            white-space: pre;
+            border-color: var(--text-muted);
         }
 
         .btn {
             background-color: var(--bg-input);
             border: 1px solid var(--border-color);
             color: var(--text-main);
-            padding: 10px 18px;
+            padding: 12px 24px;
             border-radius: 8px;
             font-weight: 500;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 14px;
             transition: all 0.2s;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            justify-content: center;
+            gap: 8px;
             white-space: nowrap;
         }
 
         .btn:hover {
             border-color: var(--text-muted);
-            background-color: #262a3b;
+            background-color: #222224;
         }
 
         .btn-primary {
             background-color: var(--accent);
-            color: #ffffff;
+            color: #000000;
             border: none;
             font-weight: 600;
         }
@@ -156,18 +148,14 @@
             margin-top: 10px;
         }
 
-        .tabs-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
+        /* Табы сайтов */
         .domain-tabs {
             display: flex;
             gap: 8px;
             overflow-x: auto;
-            padding-bottom: 6px;
+            padding-bottom: 8px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .tab-btn {
@@ -177,10 +165,9 @@
             padding: 8px 16px;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 13px;
-            font-weight: 500;
-            white-space: nowrap;
+            font-size: 14px;
             transition: all 0.2s;
+            white-space: nowrap;
         }
 
         .tab-btn:hover {
@@ -189,16 +176,16 @@
         }
 
         .tab-btn.active {
-            background: var(--accent);
-            color: #ffffff;
+            background: var(--bg-input);
+            color: var(--accent);
             border-color: var(--accent);
             font-weight: 600;
         }
 
-        /* Рабочая область: Меню слева + Графики справа */
+        /* Сетка дашборда */
         .dashboard-layout {
             display: grid;
-            grid-template-columns: 260px 1fr;
+            grid-template-columns: 280px 1fr;
             gap: 20px;
             align-items: start;
         }
@@ -218,7 +205,7 @@
         }
 
         .menu-item {
-            padding: 12px 14px;
+            padding: 12px 16px;
             background: var(--bg-input);
             border: 1px solid var(--border-color);
             border-radius: 8px;
@@ -238,10 +225,9 @@
         }
 
         .menu-item.active {
-            background: #1f2742;
+            background: #222226;
             border-color: var(--accent);
-            color: #60a5fa;
-            font-weight: 600;
+            color: var(--accent);
         }
 
         .charts-stack {
@@ -252,17 +238,23 @@
 
         .chart-container {
             position: relative;
-            height: 390px;
+            height: 400px;
             width: 100%;
         }
 
-        .manual-sheets-box {
-            display: none;
-            background: var(--bg-input);
-            border: 1px dashed var(--border-color);
-            padding: 12px;
-            border-radius: 8px;
-            margin-top: 10px;
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background-color: var(--bg-main);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background-color: var(--border-color);
+            border-radius: 10px;
         }
     </style>
 </head>
@@ -272,52 +264,30 @@
     <div class="container">
         <div class="title">
             <div>
-                <h1>SEO & Leads Analytics Dashboard</h1>
+                <h1>Отчетность проектов</h1>
                 <div class="subtitle">Автоматическая визуализация данных Google Таблиц</div>
             </div>
         </div>
 
+        <!-- Поле ввода ссылки -->
         <div class="card">
             <div class="input-row">
                 <input type="text" id="sheetUrl"
-                    placeholder="Вставьте ссылку на Google Таблицу (доступ: «Все, у кого есть ссылка»)" />
+                    placeholder="Вставьте ссылку на Google Таблицу (доступ: «Все, у кого есть ссылка»)"
+                    value="https://docs.google.com/spreadsheets/d/1QUidv9CoxZRPAwpM8AYEfD9ShWR1hEs9sjLmSQi7k_8/edit" />
                 <button class="btn btn-primary" id="loadBtn" onclick="initDashboard()">Загрузить отчет</button>
-                <button class="btn" onclick="togglePasteArea()">📋 Вставить ячейки текстом</button>
             </div>
-
-            <textarea id="rawPasteArea"
-                placeholder="Вставьте сюда скопированные данные прямо из Google Таблицы (Ctrl+A -> Ctrl+C)..."></textarea>
-            <div id="pasteActionRow" style="display: none; margin-top: 10px;">
-                <button class="btn btn-primary" onclick="loadFromPaste()">Построить графики из текста</button>
-            </div>
-
-            <div id="manualSheetsBox" class="manual-sheets-box">
-                <div style="font-size: 13px; margin-bottom: 8px; color: var(--text-main);">
-                    <b>Укажите названия листов (вкладок) через запятую</b>, если Google блокирует доступ к оглавлению:
-                </div>
-                <div class="input-row">
-                    <input type="text" id="manualSheetsInput" placeholder="Например: site.ru, site.com, site.by" />
-                    <button class="btn btn-primary" onclick="applyManualSheets()">Применить вкладки</button>
-                </div>
-            </div>
-
             <div id="statusText" class="status-msg">
-                Готов к загрузке. Вставьте ссылку на таблицу или скопированные данные.
+                Готов к работе. Вставьте ссылку и нажмите «Загрузить отчет».
             </div>
         </div>
 
-        <!-- Вкладки сайтов -->
-        <div id="tabsSection" style="display: none; margin-bottom: 20px;">
-            <div class="tabs-header">
-                <span style="font-size: 13px; color: var(--text-muted);">Сайты (вкладки):</span>
-                <button class="btn" style="padding: 4px 10px; font-size: 12px;" onclick="toggleManualSheets()">✏️
-                    Указать список листов</button>
-            </div>
-            <div class="domain-tabs" id="domainTabs"></div>
-        </div>
+        <!-- Вкладки сайтов (.ru, .com и т.д.) -->
+        <div class="domain-tabs" id="domainTabs" style="display: none;"></div>
 
-        <!-- Меню + Графики -->
+        <!-- Рабочая область -->
         <div class="dashboard-layout" id="dashboardLayout" style="display: none;">
+            <!-- Сайдбар разделов -->
             <div class="sidebar-menu">
                 <div class="menu-item active" data-category="topvisor" onclick="selectCategory('topvisor')">
                     <span>Топвизор</span>
@@ -342,87 +312,34 @@
                 </div>
             </div>
 
+            <!-- Графики -->
             <div class="charts-stack" id="chartsStack"></div>
         </div>
     </div>
 
     <script>
         let currentSpreadsheetId = "";
-        let currentGid = null;
         let activeSheetName = "";
         let activeCategory = "topvisor";
         let chartInstances = [];
         let currentParsedData = null;
 
-        function togglePasteArea() {
-            const area = document.getElementById("rawPasteArea");
-            const btnRow = document.getElementById("pasteActionRow");
-            const isHidden = area.style.display === "none" || !area.style.display;
-            area.style.display = isHidden ? "block" : "none";
-            btnRow.style.display = isHidden ? "block" : "none";
-        }
-
-        function toggleManualSheets() {
-            const box = document.getElementById("manualSheetsBox");
-            box.style.display = box.style.display === "none" || !box.style.display ? "block" : "none";
-        }
+        // Регулярное выражение для поиска доменов в названиях вкладок
+        const DOMAIN_REGEX = /\.[a-zа-я0-9-]{2,}$/i;
 
         function extractSpreadsheetId(url) {
             const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
             return match ? match[1] : (url.length > 25 && !url.includes("/") ? url.trim() : null);
         }
 
-        function extractGid(url) {
-            const match = url.match(/[?&#]gid=([0-9]+)/);
-            return match ? match[1] : null;
-        }
-
-        // Парсер CSV/TSV с защитой от переносов строк внутри кавычек
-        function parseTSVWithQuotes(text) {
-            const rows = [];
-            let currentRow = [];
-            let currentCell = '';
-            let inQuotes = false;
-
-            for (let i = 0; i < text.length; i++) {
-                const char = text[i];
-                const nextChar = text[i + 1];
-
-                if (char === '"') {
-                    if (inQuotes && nextChar === '"') {
-                        currentCell += '"';
-                        i++;
-                    } else {
-                        inQuotes = !inQuotes;
-                    }
-                } else if (char === '\t' && !inQuotes) {
-                    currentRow.push(currentCell);
-                    currentCell = '';
-                } else if ((char === '\r' || char === '\n') && !inQuotes) {
-                    if (char === '\r' && nextChar === '\n') {
-                        i++;
-                    }
-                    currentRow.push(currentCell);
-                    rows.push(currentRow);
-                    currentRow = [];
-                    currentCell = '';
-                } else {
-                    currentCell += char;
-                }
-            }
-            if (currentCell || currentRow.length > 0) {
-                currentRow.push(currentCell);
-                rows.push(currentRow);
-            }
-            return rows;
-        }
-
+        // Автоматическое обнаружение вкладок таблицы через каскадный прокси
         async function discoverSheets(sheetId) {
             const targetUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/htmlview`;
+
             const proxies = [
-                (u) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
                 (u) => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
-                (u) => `https://corsproxy.io/?url=${encodeURIComponent(u)}`
+                (u) => `https://corsproxy.io/?url=${encodeURIComponent(u)}`,
+                (u) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`
             ];
 
             let html = "";
@@ -430,20 +347,27 @@
                 try {
                     const res = await fetch(proxyFn(targetUrl));
                     if (!res.ok) continue;
-                    const data = await res.json().catch(() => null);
-                    html = data && data.contents ? data.contents : (typeof data === "string" ? data : await res.text().catch(() => ""));
-                    if (html && html.length > 300) break;
+                    const text = await res.text();
+                    try {
+                        const j = JSON.parse(text);
+                        html = j.contents || text;
+                    } catch (e) {
+                        html = text;
+                    }
+                    if (html && typeof html === "string" && html.length > 200 && (html.includes("sheet-tab") || html.includes("sheet-menu") || html.includes("name:"))) {
+                        break;
+                    }
                 } catch (e) {
-                    console.warn("Прокси недоступен, пробуем следующий...");
+                    console.warn("Прокси недоступен, пробуем следующий...", e);
                 }
             }
 
-            if (!html) return [];
+            if (!html) throw new Error("Не удалось прочесть оглавление листов через сеть");
 
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, "text/html");
-            let names = [];
 
+            let names = [];
             doc.querySelectorAll(".sheet-tab, ul#sheet-menu li a, #sheet-menu li").forEach(el => {
                 const txt = el.textContent.trim();
                 if (txt && !names.includes(txt)) names.push(txt);
@@ -454,18 +378,14 @@
                 names = [...new Set(matches)];
             }
 
-            return names.filter(Boolean);
+            const domainSheets = names.filter(name => DOMAIN_REGEX.test(name));
+            return domainSheets.length > 0 ? domainSheets : names;
         }
 
         async function initDashboard() {
             const urlInput = document.getElementById("sheetUrl").value.trim();
             const status = document.getElementById("statusText");
             const loadBtn = document.getElementById("loadBtn");
-
-            if (urlInput.includes("\t") || urlInput.includes("\n")) {
-                loadFromRawText(urlInput);
-                return;
-            }
 
             const sheetId = extractSpreadsheetId(urlInput);
             if (!sheetId) {
@@ -475,62 +395,35 @@
             }
 
             currentSpreadsheetId = sheetId;
-            currentGid = extractGid(urlInput);
-            status.innerText = "Поиск листов (сайтов) в таблице...";
+            status.innerText = "Сканирование структуры таблицы...";
             status.style.color = "var(--text-muted)";
             loadBtn.disabled = true;
 
             try {
                 let sheets = await discoverSheets(sheetId);
-                const cached = localStorage.getItem("sheets_" + sheetId);
-                if ((!sheets || sheets.length === 0) && cached) {
-                    sheets = JSON.parse(cached);
+
+                if (!sheets || sheets.length === 0) {
+                    sheets = ["Лист1"];
                 }
 
-                if (sheets && sheets.length > 0) {
-                    status.innerText = `Найдено листов: ${sheets.length}`;
-                    status.style.color = "var(--success)";
-                    renderDomainTabs(sheets);
-                } else {
-                    status.innerText = "Вкладки не обнаружены автоматически. Открываем активный лист.";
-                    document.getElementById("manualSheetsBox").style.display = "block";
-                    renderDomainTabs([]);
-                    loadSheetDirect(null, currentGid);
-                }
+                status.innerText = `Найдено сайтов: ${sheets.length} (${sheets.join(", ")})`;
+                status.style.color = "var(--success)";
+
+                renderDomainTabs(sheets);
             } catch (err) {
-                loadSheetDirect(null, currentGid);
+                console.warn("Автодетект листов не удался, пробуем вкладку по умолчанию...", err);
+                status.innerText = "Не удалось автоматически перечислить листы. Загружаем активный лист...";
+                renderDomainTabs(["Лист1"]);
             } finally {
                 loadBtn.disabled = false;
             }
         }
 
-        function applyManualSheets() {
-            const val = document.getElementById("manualSheetsInput").value.trim();
-            if (!val) return;
-            const list = val.split(",").map(s => s.trim()).filter(Boolean);
-            if (list.length > 0) {
-                localStorage.setItem("sheets_" + currentSpreadsheetId, JSON.stringify(list));
-                renderDomainTabs(list);
-                document.getElementById("manualSheetsBox").style.display = "none";
-            }
-        }
-
         function renderDomainTabs(sheets) {
-            const section = document.getElementById("tabsSection");
             const container = document.getElementById("domainTabs");
             container.innerHTML = "";
+            container.style.display = "flex";
 
-            if (!sheets || sheets.length === 0) {
-                section.style.display = "block";
-                const btn = document.createElement("button");
-                btn.className = "tab-btn active";
-                btn.innerText = "Текущий лист";
-                btn.onclick = () => loadSheetDirect(null, currentGid);
-                container.appendChild(btn);
-                return;
-            }
-
-            section.style.display = "block";
             sheets.forEach((sheet, idx) => {
                 const btn = document.createElement("button");
                 btn.className = `tab-btn ${idx === 0 ? 'active' : ''}`;
@@ -538,103 +431,66 @@
                 btn.onclick = () => {
                     document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
                     btn.classList.add("active");
-                    loadSheetDirect(sheet, null);
+                    loadSheet(sheet);
                 };
                 container.appendChild(btn);
             });
 
-            // Открываем блок дашборда
             document.getElementById("dashboardLayout").style.display = "grid";
-            loadSheetDirect(sheets[0], null);
+            loadSheet(sheets[0]);
         }
 
-        async function loadSheetDirect(sheetName, gid) {
-            activeSheetName = sheetName || "Текущий лист";
+        // Загрузка данных конкретного листа через GViz
+        async function loadSheet(sheetName) {
+            activeSheetName = sheetName;
             const status = document.getElementById("statusText");
 
-            status.innerText = `Загрузка данных для "${activeSheetName}"...`;
+            status.innerText = `Загрузка данных для ${sheetName}...`;
             status.style.color = "var(--text-muted)";
 
             try {
-                let gvizUrl = `https://docs.google.com/spreadsheets/d/${currentSpreadsheetId}/gviz/tq?tqx=out:json`;
-                if (sheetName) {
-                    gvizUrl += `&sheet=${encodeURIComponent(sheetName)}`;
-                } else if (gid) {
-                    gvizUrl += `&gid=${gid}`;
-                }
+                // Если лист не "Лист1" (или если это реальное имя вкладки), передаем имя
+                const sheetParam = sheetName !== "Лист1" ? `&sheet=${encodeURIComponent(sheetName)}` : "";
+                const gvizUrl = `https://docs.google.com/spreadsheets/d/${currentSpreadsheetId}/gviz/tq?tqx=out:json${sheetParam}`;
 
                 const res = await fetch(gvizUrl);
                 const rawText = await res.text();
 
                 const jsonStart = rawText.indexOf("{");
                 const jsonEnd = rawText.lastIndexOf("}");
-                if (jsonStart === -1 || jsonEnd === -1) {
-                    throw new Error("Неверный ответ от Google. Проверьте права доступа.");
-                }
+                if (jsonStart === -1 || jsonEnd === -1) throw new Error("Неверный ответ от таблицы");
 
                 const json = JSON.parse(rawText.substring(jsonStart, jsonEnd + 1));
-                if (!json || !json.table) throw new Error("Таблица не содержит данных");
+                if (!json || !json.table) throw new Error("Таблица пуста");
 
                 processSheetData(json.table);
-                status.innerText = `Лист "${activeSheetName}" загружен. Периодов: ${currentParsedData.dates.length}`;
+                status.innerText = `Сайт "${sheetName}" успешно загружен. Периодов: ${currentParsedData.dates.length}`;
                 status.style.color = "var(--success)";
 
-                // ГАРАНТИРУЕМ ОТОБРАЖЕНИЕ РАБОЧЕЙ ОБЛАСТИ
                 document.getElementById("dashboardLayout").style.display = "grid";
                 renderCategoryCharts();
             } catch (e) {
-                status.innerText = `Ошибка загрузки: ${e.message}`;
+                console.error(e);
+                status.innerText = `Ошибка при получении данных с листа "${sheetName}". Убедитесь, что таблица доступна по ссылке.`;
                 status.style.color = "var(--danger)";
             }
         }
 
-        function loadFromPaste() {
-            const text = document.getElementById("rawPasteArea").value;
-            loadFromRawText(text);
-        }
-
-        function loadFromRawText(text) {
-            const status = document.getElementById("statusText");
-            if (!text || !text.trim()) {
-                status.innerText = "Поле вставки пустое.";
-                status.style.color = "var(--danger)";
-                return;
-            }
-
-            const matrix = parseTSVWithQuotes(text.trim());
-
-            document.getElementById("dashboardLayout").style.display = "grid";
-            document.getElementById("tabsSection").style.display = "none";
-            activeSheetName = "Вставленные данные";
-
-            try {
-                parseMatrixData(matrix);
-                status.innerText = `Построено из текста! Периодов: ${currentParsedData.dates.length}`;
-                status.style.color = "var(--success)";
-                renderCategoryCharts();
-            } catch (err) {
-                status.innerText = `Ошибка разбора: ${err.message}`;
-                status.style.color = "var(--danger)";
-            }
-        }
-
+        // Преобразование текстовых ячеек (числа, проценты, время "1:54", "1 м 28 с", "33 с")
         function cleanNumeric(val) {
             if (val === null || val === undefined) return null;
             let s = String(val).trim();
-            if (s === "") return null;
-            if (s.toLowerCase().includes("нет данных")) return null;
+            if (s === "" || s.toLowerCase().includes("нет данных")) return null;
             if (s === "-" || s.toLowerCase() === "нет" || s.toLowerCase().includes("проблем нет") || s.toLowerCase().includes("обнаружена проблема")) return 0;
 
             s = s.replace("%", "").trim().replace(",", ".");
 
-            // Формат времени "1:54", "59:06"
             if (/^\d+:\d+(:\d+)?$/.test(s)) {
                 const parts = s.split(":").map(Number);
                 if (parts.length === 2) return parts[0] * 60 + parts[1];
                 if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
             }
 
-            // Текстовый формат времени "1 м 28 с", "33 с"
             if (/[мmсc]/i.test(s)) {
                 const minMatch = s.match(/(\d+)\s*[мm]/i);
                 const secMatch = s.match(/(\d+)\s*[сc]/i);
@@ -667,7 +523,7 @@
             parseMatrixData(matrix);
         }
 
-        // Интеллектуальный парсер колонок по смысловым маркерам
+        // Семантический определитель колонок
         function parseMatrixData(matrix) {
             if (!matrix || matrix.length < 2) throw new Error("Недостаточно строк в таблице");
 
@@ -834,25 +690,25 @@
             interaction: { mode: 'index', intersect: false },
             plugins: {
                 legend: {
-                    labels: { color: '#f1f3f9', boxWidth: 14, font: { size: 12 } }
+                    labels: { color: '#e7e9ea', boxWidth: 14, font: { size: 12 } }
                 },
                 tooltip: {
-                    backgroundColor: '#14161f',
-                    titleColor: '#f1f3f9',
-                    bodyColor: '#8b92a5',
-                    borderColor: '#2b3044',
+                    backgroundColor: '#121214',
+                    titleColor: '#e7e9ea',
+                    bodyColor: '#71767b',
+                    borderColor: '#2d2d30',
                     borderWidth: 1
                 }
             },
             scales: {
                 x: {
-                    grid: { color: '#2b3044' },
-                    ticks: { color: '#8b92a5', maxRotation: 45 }
+                    grid: { color: '#2d2d30' },
+                    ticks: { color: '#71767b', maxRotation: 45 }
                 },
                 y: {
                     beginAtZero: true,
-                    grid: { color: '#2b3044' },
-                    ticks: { color: '#8b92a5' }
+                    grid: { color: '#2d2d30' },
+                    ticks: { color: '#71767b' }
                 }
             }
         };
@@ -963,7 +819,7 @@
                     options: baseChartOptions
                 }));
 
-                // График 2: Поведение
+                // График 2: Поведение (с двумя осями Y)
                 const ctxBehavior = createChartCard("Яндекс Метрика: Отказы, Глубина и Время на сайте");
                 chartInstances.push(new Chart(ctxBehavior, {
                     type: 'line',
@@ -1021,9 +877,9 @@
                             y: {
                                 beginAtZero: true,
                                 position: 'left',
-                                grid: { color: '#2b3044' },
-                                ticks: { color: '#8b92a5' },
-                                title: { display: true, text: 'Отказы (%) / Глубина', color: '#8b92a5' }
+                                grid: { color: '#2d2d30' },
+                                ticks: { color: '#71767b' },
+                                title: { display: true, text: 'Отказы (%) / Глубина', color: '#71767b' }
                             },
                             yTime: {
                                 beginAtZero: true,
@@ -1119,9 +975,9 @@
                             y: {
                                 beginAtZero: true,
                                 position: 'left',
-                                grid: { color: '#2b3044' },
-                                ticks: { color: '#8b92a5' },
-                                title: { display: true, text: 'Переходы (кол-во)', color: '#8b92a5' }
+                                grid: { color: '#2d2d30' },
+                                ticks: { color: '#71767b' },
+                                title: { display: true, text: 'Переходы (кол-во)', color: '#71767b' }
                             },
                             yAi: {
                                 beginAtZero: true,
@@ -1129,10 +985,10 @@
                                 max: 100,
                                 grid: { drawOnChartArea: false },
                                 ticks: {
-                                    color: '#8b92a5',
+                                    color: '#71767b',
                                     callback: (v) => v + '%'
                                 },
-                                title: { display: true, text: 'Видимость (%)', color: '#8b92a5' }
+                                title: { display: true, text: 'Видимость (%)', color: '#71767b' }
                             }
                         }
                     }
@@ -1176,7 +1032,7 @@
                             y: {
                                 beginAtZero: true,
                                 position: 'left',
-                                grid: { color: '#2b3044' },
+                                grid: { color: '#2d2d30' },
                                 ticks: { color: '#3b82f6' },
                                 title: { display: true, text: 'Клики', color: '#3b82f6' }
                             },
@@ -1332,6 +1188,12 @@
                 }));
             }
         }
+
+        // Автозагрузка при старте страницы, если ссылка уже указана
+        window.addEventListener("DOMContentLoaded", () => {
+            const urlInput = document.getElementById("sheetUrl").value.trim();
+            if (urlInput) initDashboard();
+        });
     </script>
 </body>
 
