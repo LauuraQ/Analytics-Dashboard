@@ -148,7 +148,7 @@
             margin-top: 10px;
         }
 
-        /* Табы сайтов */
+        /* Табы сайтов сверху */
         .domain-tabs {
             display: flex;
             gap: 8px;
@@ -182,7 +182,7 @@
             font-weight: 600;
         }
 
-        /* Сетка дашборда */
+        /* Рабочая область: Меню слева + Графики справа */
         .dashboard-layout {
             display: grid;
             grid-template-columns: 280px 1fr;
@@ -269,7 +269,6 @@
             </div>
         </div>
 
-        <!-- Поле ввода ссылки -->
         <div class="card">
             <div class="input-row">
                 <input type="text" id="sheetUrl"
@@ -287,7 +286,6 @@
 
         <!-- Рабочая область -->
         <div class="dashboard-layout" id="dashboardLayout" style="display: none;">
-            <!-- Сайдбар разделов -->
             <div class="sidebar-menu">
                 <div class="menu-item active" data-category="topvisor" onclick="selectCategory('topvisor')">
                     <span>Топвизор</span>
@@ -312,7 +310,6 @@
                 </div>
             </div>
 
-            <!-- Графики -->
             <div class="charts-stack" id="chartsStack"></div>
         </div>
     </div>
@@ -324,7 +321,6 @@
         let chartInstances = [];
         let currentParsedData = null;
 
-        // Регулярное выражение для поиска доменов в названиях вкладок
         const DOMAIN_REGEX = /\.[a-zа-я0-9-]{2,}$/i;
 
         function extractSpreadsheetId(url) {
@@ -332,43 +328,44 @@
             return match ? match[1] : (url.length > 25 && !url.includes("/") ? url.trim() : null);
         }
 
-        // Автоматическое обнаружение вкладок таблицы через каскадный прокси
+        // Поиск вкладок с таймаутом 4 сек на прокси
         async function discoverSheets(sheetId) {
             const targetUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/htmlview`;
 
             const proxies = [
                 (u) => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
-                (u) => `https://corsproxy.io/?url=${encodeURIComponent(u)}`,
-                (u) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`
+                (u) => `https://corsproxy.io/?url=${encodeURIComponent(u)}`
             ];
 
             let html = "";
             for (const proxyFn of proxies) {
                 try {
-                    const res = await fetch(proxyFn(targetUrl));
+                    const controller = new AbortController();
+                    const timer = setTimeout(() => controller.abort(), 4000);
+                    const res = await fetch(proxyFn(targetUrl), { signal: controller.signal });
+                    clearTimeout(timer);
+
                     if (!res.ok) continue;
                     const text = await res.text();
                     try {
                         const j = JSON.parse(text);
                         html = j.contents || text;
-                    } catch (e) {
+                    } catch (_) {
                         html = text;
                     }
-                    if (html && typeof html === "string" && html.length > 200 && (html.includes("sheet-tab") || html.includes("sheet-menu") || html.includes("name:"))) {
-                        break;
-                    }
+                    if (html && typeof html === "string" && html.length > 300) break;
                 } catch (e) {
                     console.warn("Прокси недоступен, пробуем следующий...", e);
                 }
             }
 
-            if (!html) throw new Error("Не удалось прочесть оглавление листов через сеть");
+            if (!html) return [];
 
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, "text/html");
 
             let names = [];
-            doc.querySelectorAll(".sheet-tab, ul#sheet-menu li a, #sheet-menu li").forEach(el => {
+            doc.querySelectorAll(".sheet-tab, ul#sheet-menu li a, #sheet-menu li, .switcher-bar a").forEach(el => {
                 const txt = el.textContent.trim();
                 if (txt && !names.includes(txt)) names.push(txt);
             });
@@ -402,21 +399,35 @@
             try {
                 let sheets = await discoverSheets(sheetId);
 
-                if (!sheets || sheets.length === 0) {
-                    sheets = ["Лист1"];
+                if (sheets && sheets.length > 0) {
+                    status.innerText = `Найдено сайтов: ${sheets.length} (${sheets.join(", ")})`;
+                    status.style.color = "var(--success)";
+                    renderDomainTabs(sheets);
+                } else {
+                    // Fallback: если прокси не вернул имена, открываем первый видимый лист напрямую
+                    status.innerText = "Загрузка активного листа таблицы...";
+                    renderFallbackSingleTab();
                 }
-
-                status.innerText = `Найдено сайтов: ${sheets.length} (${sheets.join(", ")})`;
-                status.style.color = "var(--success)";
-
-                renderDomainTabs(sheets);
             } catch (err) {
-                console.warn("Автодетект листов не удался, пробуем вкладку по умолчанию...", err);
-                status.innerText = "Не удалось автоматически перечислить листы. Загружаем активный лист...";
-                renderDomainTabs(["Лист1"]);
+                console.warn("Автодетект не ответил, пробуем открыть лист напрямую...", err);
+                renderFallbackSingleTab();
             } finally {
                 loadBtn.disabled = false;
             }
+        }
+
+        function renderFallbackSingleTab() {
+            const container = document.getElementById("domainTabs");
+            container.innerHTML = "";
+            container.style.display = "flex";
+
+            const btn = document.createElement("button");
+            btn.className = "tab-btn active";
+            btn.innerText = "Основной лист";
+            container.appendChild(btn);
+
+            document.getElementById("dashboardLayout").style.display = "grid";
+            loadSheetDirect(null);
         }
 
         function renderDomainTabs(sheets) {
@@ -431,26 +442,25 @@
                 btn.onclick = () => {
                     document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
                     btn.classList.add("active");
-                    loadSheet(sheet);
+                    loadSheetDirect(sheet);
                 };
                 container.appendChild(btn);
             });
 
             document.getElementById("dashboardLayout").style.display = "grid";
-            loadSheet(sheets[0]);
+            loadSheetDirect(sheets[0]);
         }
 
-        // Загрузка данных конкретного листа через GViz
-        async function loadSheet(sheetName) {
-            activeSheetName = sheetName;
+        // Прямая загрузка листа из GViz
+        async function loadSheetDirect(sheetName) {
+            activeSheetName = sheetName || "Текущий лист";
             const status = document.getElementById("statusText");
 
-            status.innerText = `Загрузка данных для ${sheetName}...`;
+            status.innerText = `Загрузка данных для "${activeSheetName}"...`;
             status.style.color = "var(--text-muted)";
 
             try {
-                // Если лист не "Лист1" (или если это реальное имя вкладки), передаем имя
-                const sheetParam = sheetName !== "Лист1" ? `&sheet=${encodeURIComponent(sheetName)}` : "";
+                const sheetParam = sheetName ? `&sheet=${encodeURIComponent(sheetName)}` : "";
                 const gvizUrl = `https://docs.google.com/spreadsheets/d/${currentSpreadsheetId}/gviz/tq?tqx=out:json${sheetParam}`;
 
                 const res = await fetch(gvizUrl);
@@ -458,30 +468,29 @@
 
                 const jsonStart = rawText.indexOf("{");
                 const jsonEnd = rawText.lastIndexOf("}");
-                if (jsonStart === -1 || jsonEnd === -1) throw new Error("Неверный ответ от таблицы");
+                if (jsonStart === -1 || jsonEnd === -1) throw new Error("Неверный ответ от Google Таблицы");
 
                 const json = JSON.parse(rawText.substring(jsonStart, jsonEnd + 1));
                 if (!json || !json.table) throw new Error("Таблица пуста");
 
                 processSheetData(json.table);
-                status.innerText = `Сайт "${sheetName}" успешно загружен. Периодов: ${currentParsedData.dates.length}`;
+                status.innerText = `Лист "${activeSheetName}" успешно загружен. Периодов в отчете: ${currentParsedData.dates.length}`;
                 status.style.color = "var(--success)";
 
                 document.getElementById("dashboardLayout").style.display = "grid";
                 renderCategoryCharts();
             } catch (e) {
                 console.error(e);
-                status.innerText = `Ошибка при получении данных с листа "${sheetName}". Убедитесь, что таблица доступна по ссылке.`;
+                status.innerText = `Ошибка загрузки листа "${activeSheetName}". Убедитесь, что таблица доступна по ссылке.`;
                 status.style.color = "var(--danger)";
             }
         }
 
-        // Преобразование текстовых ячеек (числа, проценты, время "1:54", "1 м 28 с", "33 с")
+        // Парсер чисел, процентов и времени
         function cleanNumeric(val) {
-            if (val === null || val === undefined) return null;
+            if (val === null || val === undefined) return 0;
             let s = String(val).trim();
-            if (s === "" || s.toLowerCase().includes("нет данных")) return null;
-            if (s === "-" || s.toLowerCase() === "нет" || s.toLowerCase().includes("проблем нет") || s.toLowerCase().includes("обнаружена проблема")) return 0;
+            if (s === "" || s === "-" || s.toLowerCase() === "нет" || s.toLowerCase().includes("нет данных") || s.toLowerCase().includes("проблем нет") || s.toLowerCase().includes("обнаружена проблема")) return 0;
 
             s = s.replace("%", "").trim().replace(",", ".");
 
@@ -500,7 +509,7 @@
             }
 
             const num = parseFloat(s.replace(/\s+/g, ""));
-            return isNaN(num) ? null : num;
+            return isNaN(num) ? 0 : num;
         }
 
         function formatSeconds(sec) {
@@ -562,13 +571,13 @@
                 let metricKey = null;
 
                 // Топвизор
-                if (h.includes("топ 3") && (h.includes("яндекс") || h.includes("я "))) {
+                if ((h.includes("топ 3") || h.includes("топ3")) && (h.includes("яндекс") || h.includes("я "))) {
                     category = "topvisor"; metricKey = "ya_top3";
-                } else if (h.includes("топ 10") && (h.includes("яндекс") || h.includes("я "))) {
+                } else if ((h.includes("топ 10") || h.includes("топ10")) && (h.includes("яндекс") || h.includes("я "))) {
                     category = "topvisor"; metricKey = "ya_top10";
-                } else if (h.includes("топ 3") && (h.includes("google") || h.includes("гугл") || h.includes("г "))) {
+                } else if ((h.includes("топ 3") || h.includes("топ3")) && (h.includes("google") || h.includes("гугл") || h.includes("г "))) {
                     category = "topvisor"; metricKey = "g_top3";
-                } else if (h.includes("топ 10") && (h.includes("google") || h.includes("гугл") || h.includes("г "))) {
+                } else if ((h.includes("топ 10") || h.includes("топ10")) && (h.includes("google") || h.includes("гугл") || h.includes("г "))) {
                     category = "topvisor"; metricKey = "g_top10";
                 }
                 // Метрика: Трафик
@@ -612,7 +621,7 @@
                     category = "gsc"; metricKey = "gsc_impressions";
                 } else if (h.includes("не в индекс") || h.includes("не проиндекс")) {
                     category = "gsc"; metricKey = "gsc_not_indexed";
-                } else if (h.includes("в индекс") || h.includes("проиндекс")) {
+                } else if ((h.includes("в индекс") || h.includes("проиндекс")) && !h.includes("не")) {
                     category = "gsc"; metricKey = "gsc_indexed";
                 } else if (h.includes("ссыл")) {
                     category = "gsc"; metricKey = "gsc_links";
@@ -819,7 +828,7 @@
                     options: baseChartOptions
                 }));
 
-                // График 2: Поведение (с двумя осями Y)
+                // График 2: Поведение
                 const ctxBehavior = createChartCard("Яндекс Метрика: Отказы, Глубина и Время на сайте");
                 chartInstances.push(new Chart(ctxBehavior, {
                     type: 'line',
@@ -877,7 +886,7 @@
                             y: {
                                 beginAtZero: true,
                                 position: 'left',
-                                grid: { color: '#2d2d30' },
+                                grid: { color: '#2b3044' },
                                 ticks: { color: '#71767b' },
                                 title: { display: true, text: 'Отказы (%) / Глубина', color: '#71767b' }
                             },
@@ -975,7 +984,7 @@
                             y: {
                                 beginAtZero: true,
                                 position: 'left',
-                                grid: { color: '#2d2d30' },
+                                grid: { color: '#2b3044' },
                                 ticks: { color: '#71767b' },
                                 title: { display: true, text: 'Переходы (кол-во)', color: '#71767b' }
                             },
@@ -1032,7 +1041,7 @@
                             y: {
                                 beginAtZero: true,
                                 position: 'left',
-                                grid: { color: '#2d2d30' },
+                                grid: { color: '#2b3044' },
                                 ticks: { color: '#3b82f6' },
                                 title: { display: true, text: 'Клики', color: '#3b82f6' }
                             },
@@ -1189,7 +1198,7 @@
             }
         }
 
-        // Автозагрузка при старте страницы, если ссылка уже указана
+        // Автозагрузка при старте страницы
         window.addEventListener("DOMContentLoaded", () => {
             const urlInput = document.getElementById("sheetUrl").value.trim();
             if (urlInput) initDashboard();
