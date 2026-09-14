@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SEO & Leads Analytics Dashboard</title>
+    <!-- Предотвращение ошибки favicon 404 -->
+    <link rel="icon" href="data:,">
 
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -21,6 +23,7 @@
             --accent-hover: #2563eb;
             --danger: #ef4444;
             --success: #10b981;
+            --warning: #f59e0b;
         }
 
         * {
@@ -153,7 +156,16 @@
         .status-msg {
             font-size: 13px;
             color: var(--text-muted);
-            margin-top: 10px;
+            margin-top: 12px;
+            line-height: 1.6;
+        }
+
+        .status-msg.error-box {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: #fca5a5;
         }
 
         /* Блок табов листов */
@@ -226,17 +238,17 @@
         }
 
         .tab-btn .tab-close {
-            font-size: 14px;
+            font-size: 15px;
             line-height: 1;
             opacity: 0.5;
             transition: opacity 0.2s;
-            padding: 2px;
+            padding: 2px 4px;
             border-radius: 4px;
         }
 
         .tab-btn .tab-close:hover {
             opacity: 1;
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.25);
         }
 
         .btn-add-tab {
@@ -351,18 +363,18 @@
             </div>
         </div>
 
-        <!-- Блок переключения листов таблицы (табы) -->
+        <!-- Табы для переключения между листами -->
         <div id="tabsSection" class="tabs-card" style="display: none;">
             <div class="tabs-header">
-                <span class="tabs-header-title">Листы таблицы (выберите для формирования графиков):</span>
+                <span class="tabs-header-title">Листы таблицы (выберите лист для графиков):</span>
             </div>
             <div class="domain-tabs-wrap">
                 <div class="domain-tabs" id="domainTabs"></div>
-                <button class="btn-add-tab" onclick="promptAddTab()" title="Добавить еще лист">+ Добавить лист</button>
+                <button class="btn-add-tab" onclick="promptAddTab()" title="Добавить лист">+ Добавить лист</button>
             </div>
         </div>
 
-        <!-- Меню + Графики -->
+        <!-- Рабочая область дашборда -->
         <div class="dashboard-layout" id="dashboardLayout" style="display: none;">
             <div class="sidebar-menu">
                 <div class="menu-item active" data-category="topvisor" onclick="selectCategory('topvisor')">
@@ -458,80 +470,52 @@
             return rows;
         }
 
-        // Автопоиск листов в таблице через цепочку прокси и форматов
+        // Поиск листов таблицы без падений на мертвых прокси
         async function discoverSheets(sheetId) {
-            const targets = [
-                `https://docs.google.com/spreadsheets/d/${sheetId}/pubhtml`,
-                `https://docs.google.com/spreadsheets/d/${sheetId}/htmlview`
-            ];
-
-            const proxies = [
-                (u) => `https://corsproxy.io/?${encodeURIComponent(u)}`,
-                (u) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
-                (u) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
-                (u) => `https://thingproxy.freeboard.io/fetch/${u}`
-            ];
-
+            const targetUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/pubhtml`;
             let html = "";
-            for (const targetUrl of targets) {
-                for (const proxyFn of proxies) {
-                    try {
-                        const controller = new AbortController();
-                        const timeoutId = setTimeout(() => controller.abort(), 4000);
-                        const res = await fetch(proxyFn(targetUrl), { signal: controller.signal });
-                        clearTimeout(timeoutId);
 
-                        if (!res.ok) continue;
-                        html = await res.text();
-                        if (html && html.length > 500 && (html.includes("sheet") || html.includes("gid="))) {
-                            break;
-                        }
-                    } catch (e) {
-                        // пробуем следующий прокси
-                    }
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 3500);
+                const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`, {
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                if (res.ok) {
+                    const json = await res.json();
+                    html = json && json.contents ? json.contents : "";
                 }
-                if (html && html.length > 500) break;
+            } catch (e) {
+                // Тихий пропуск сетевых сбоев сторонних прокси
             }
 
-            if (!html) return [];
+            if (!html || html.length < 200) return [];
 
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, "text/html");
             let names = [];
 
-            // 1. Поиск элементов меню
             doc.querySelectorAll(".sheet-tab, ul#sheet-menu li a, #sheet-menu li, li[id^='sheet-button-'] a").forEach(el => {
                 const txt = el.textContent.trim();
                 if (txt && !names.includes(txt)) names.push(txt);
             });
 
-            // 2. Регулярные выражения в коде страницы
             if (names.length === 0) {
-                const regexes = [
-                    /name:\s*"([^"\\]+)"/g,
-                    /"name":\s*"([^"\\]+)"/g,
-                    /\[\d+,\s*"([^"\\]+)"/g
-                ];
-                for (const reg of regexes) {
-                    const matches = [...html.matchAll(reg)].map(m => m[1]);
-                    matches.forEach(m => {
-                        const clean = m.trim();
-                        if (clean && clean.length > 1 && clean.length < 60 && !clean.startsWith("http") && !names.includes(clean)) {
-                            names.push(clean);
-                        }
-                    });
-                }
+                const matches = [...html.matchAll(/name:\s*"([^"\\]+)"/g)].map(m => m[1]);
+                names = [...new Set(matches)];
             }
 
-            // Фильтрация системных служебных строк
-            const forbidden = ["Arial", "Roboto", "Calibri", "Google", "Sheets", "Docs", "true", "false", "undefined"];
-            return names.filter(n => !forbidden.includes(n));
+            const forbidden = ["Arial", "Roboto", "Google", "Sheets", "Docs", "true", "false", "undefined"];
+            return names.filter(n => !forbidden.includes(n) && n.length < 50);
         }
 
         async function initDashboard() {
             const urlInput = document.getElementById("sheetUrl").value.trim();
             const status = document.getElementById("statusText");
             const loadBtn = document.getElementById("loadBtn");
+
+            status.className = "status-msg";
 
             if (urlInput.includes("\t") || urlInput.includes("\n")) {
                 loadFromRawText(urlInput);
@@ -547,7 +531,7 @@
 
             currentSpreadsheetId = sheetId;
             currentGid = extractGid(urlInput);
-            status.innerText = "Подключение к Google Таблице и поиск листов...";
+            status.innerText = "Подключение к Google Таблице...";
             status.style.color = "var(--text-muted)";
             loadBtn.disabled = true;
 
@@ -555,33 +539,25 @@
                 let sheets = await discoverSheets(sheetId);
                 const cached = localStorage.getItem("sheets_" + sheetId);
                 if ((!sheets || sheets.length === 0) && cached) {
-                    sheets = JSON.parse(cached);
+                    try { sheets = JSON.parse(cached); } catch (e) { }
                 }
 
                 if (sheets && sheets.length > 0) {
                     currentSheetsList = sheets;
                     localStorage.setItem("sheets_" + sheetId, JSON.stringify(sheets));
-                    status.innerText = `Найдено листов: ${sheets.length}. Данные загружены!`;
-                    status.style.color = "var(--success)";
                     renderDomainTabs(sheets, sheets[0]);
                 } else {
-                    // Если Google заблокировал чтение оглавления, создаем стартовый таб и даем переключать
                     currentSheetsList = ["Лист 1"];
-                    status.innerText = "Лист загружен. Для добавления других вкладок нажмите «+ Добавить лист».";
-                    status.style.color = "var(--success)";
                     renderDomainTabs(currentSheetsList, "Лист 1");
-                    loadSheetDirect(null, currentGid);
                 }
             } catch (err) {
                 currentSheetsList = ["Лист 1"];
                 renderDomainTabs(currentSheetsList, "Лист 1");
-                loadSheetDirect(null, currentGid);
             } finally {
                 loadBtn.disabled = false;
             }
         }
 
-        // Отрисовка табов
         function renderDomainTabs(sheets, activeName) {
             const section = document.getElementById("tabsSection");
             const container = document.getElementById("domainTabs");
@@ -601,7 +577,6 @@
                 titleSpan.innerText = sheet;
                 btn.appendChild(titleSpan);
 
-                // Кнопка быстрого удаления вкладки при наличии более 1
                 if (sheets.length > 1) {
                     const closeBtn = document.createElement("span");
                     closeBtn.className = "tab-close";
@@ -624,14 +599,15 @@
             });
 
             document.getElementById("dashboardLayout").style.display = "grid";
+
+            // Единственный вызов загрузки
             if (activeName) {
-                loadSheetDirect(activeName, null);
+                loadSheetDirect(activeName, currentGid);
             }
         }
 
-        // Быстрое добавление нового таба
         function promptAddTab() {
-            const name = prompt("Введите название листа (вкладки) Google Таблицы:\n(можно ввести несколько через запятую)", "");
+            const name = prompt("Введите название листа (вкладки) из вашей Google Таблицы:\n(можно ввести несколько через запятую)", "");
             if (!name || !name.trim()) return;
 
             const newSheets = name.split(",").map(s => s.trim()).filter(Boolean);
@@ -662,11 +638,14 @@
             activeSheetName = sheetName || "Текущий лист";
             const status = document.getElementById("statusText");
 
-            status.innerText = `Загрузка данных для листа "${activeSheetName}"...`;
+            status.className = "status-msg";
+            status.innerText = `Загрузка данных для вкладки "${activeSheetName}"...`;
             status.style.color = "var(--text-muted)";
 
             try {
                 let gvizUrl = `https://docs.google.com/spreadsheets/d/${currentSpreadsheetId}/gviz/tq?tqx=out:json`;
+
+                // Если указан конкретный лист (отличный от системного плейсхолдера)
                 if (sheetName && sheetName !== "Лист 1") {
                     gvizUrl += `&sheet=${encodeURIComponent(sheetName)}`;
                 } else if (gid) {
@@ -674,26 +653,46 @@
                 }
 
                 const res = await fetch(gvizUrl);
-                const rawText = await res.text();
 
+                // Детальная обработка 404 ошибки доступа Google
+                if (!res.ok) {
+                    if (res.status === 404) {
+                        throw new Error("ACCESS_404");
+                    }
+                    throw new Error(`Код сервера HTTP ${res.status}`);
+                }
+
+                const rawText = await res.text();
                 const jsonStart = rawText.indexOf("{");
                 const jsonEnd = rawText.lastIndexOf("}");
                 if (jsonStart === -1 || jsonEnd === -1) {
-                    throw new Error("Не удалось получить данные листа. Проверьте права доступа («Все, у кого есть ссылка»).");
+                    throw new Error("ACCESS_404");
                 }
 
                 const json = JSON.parse(rawText.substring(jsonStart, jsonEnd + 1));
-                if (!json || !json.table) throw new Error("Таблица пуста или указано неверное имя листа");
+                if (!json || !json.table) throw new Error("Таблица не содержит данных");
 
                 processSheetData(json.table);
-                status.innerText = `Лист "${activeSheetName}" активен. Загружено периодов: ${currentParsedData.dates.length}`;
+                status.className = "status-msg";
+                status.innerText = `Лист "${activeSheetName}" успешно загружен! Периодов: ${currentParsedData.dates.length}`;
                 status.style.color = "var(--success)";
 
                 document.getElementById("dashboardLayout").style.display = "grid";
                 renderCategoryCharts();
             } catch (e) {
-                status.innerText = `Ошибка листа "${activeSheetName}": ${e.message}`;
-                status.style.color = "var(--danger)";
+                if (e.message === "ACCESS_404") {
+                    status.className = "status-msg error-box";
+                    status.innerHTML = `
+                        <b>⚠️ Ошибка доступа Google (HTTP 404):</b><br>
+                        1. Откройте вашу Google Таблицу и нажмите кнопку <b>«Поделиться» (Share)</b> вверху справа.<br>
+                        2. Измените «Ограниченный доступ» на <b>«Все, у кого есть ссылка» (Читатель)</b>.<br>
+                        <i>(Или нажмите кнопку «📋 Вставить ячейки текстом» выше, чтобы отобразить данные без открытия общего доступа).</i>
+                    `;
+                } else {
+                    status.className = "status-msg";
+                    status.innerText = `Ошибка листа "${activeSheetName}": ${e.message}`;
+                    status.style.color = "var(--danger)";
+                }
             }
         }
 
@@ -718,10 +717,12 @@
 
             try {
                 parseMatrixData(matrix);
+                status.className = "status-msg";
                 status.innerText = `Графики построены из текста! Периодов: ${currentParsedData.dates.length}`;
                 status.style.color = "var(--success)";
                 renderCategoryCharts();
             } catch (err) {
+                status.className = "status-msg";
                 status.innerText = `Ошибка разбора: ${err.message}`;
                 status.style.color = "var(--danger)";
             }
