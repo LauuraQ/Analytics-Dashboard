@@ -148,7 +148,6 @@
             margin-top: 10px;
         }
 
-        /* Табы сайтов сверху */
         .domain-tabs {
             display: flex;
             gap: 8px;
@@ -182,7 +181,6 @@
             font-weight: 600;
         }
 
-        /* Рабочая область: Меню слева + Графики справа */
         .dashboard-layout {
             display: grid;
             grid-template-columns: 280px 1fr;
@@ -281,7 +279,7 @@
             </div>
         </div>
 
-        <!-- Вкладки сайтов (.ru, .com и т.д.) -->
+        <!-- Вкладки сайтов сверху -->
         <div class="domain-tabs" id="domainTabs" style="display: none;"></div>
 
         <!-- Рабочая область -->
@@ -328,23 +326,19 @@
             return match ? match[1] : (url.length > 25 && !url.includes("/") ? url.trim() : null);
         }
 
-        // Поиск вкладок с таймаутом 4 сек на прокси
+        // Автопоиск листов через надежные CORS-прокси
         async function discoverSheets(sheetId) {
             const targetUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/htmlview`;
 
             const proxies = [
                 (u) => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
-                (u) => `https://corsproxy.io/?url=${encodeURIComponent(u)}`
+                (u) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`
             ];
 
             let html = "";
             for (const proxyFn of proxies) {
                 try {
-                    const controller = new AbortController();
-                    const timer = setTimeout(() => controller.abort(), 4000);
-                    const res = await fetch(proxyFn(targetUrl), { signal: controller.signal });
-                    clearTimeout(timer);
-
+                    const res = await fetch(proxyFn(targetUrl));
                     if (!res.ok) continue;
                     const text = await res.text();
                     try {
@@ -404,12 +398,12 @@
                     status.style.color = "var(--success)";
                     renderDomainTabs(sheets);
                 } else {
-                    // Fallback: если прокси не вернул имена, открываем первый видимый лист напрямую
-                    status.innerText = "Загрузка активного листа таблицы...";
+                    // Если прокси не ответили, загружаем первый лист напрямую через gid=0
+                    status.innerText = "Вкладки не ответили через сеть. Загружаем активный лист...";
                     renderFallbackSingleTab();
                 }
             } catch (err) {
-                console.warn("Автодетект не ответил, пробуем открыть лист напрямую...", err);
+                console.warn("Автодетект листов не удался...", err);
                 renderFallbackSingleTab();
             } finally {
                 loadBtn.disabled = false;
@@ -451,7 +445,7 @@
             loadSheetDirect(sheets[0]);
         }
 
-        // Прямая загрузка листа из GViz
+        // Загрузка данных конкретного листа
         async function loadSheetDirect(sheetName) {
             activeSheetName = sheetName || "Текущий лист";
             const status = document.getElementById("statusText");
@@ -460,18 +454,24 @@
             status.style.color = "var(--text-muted)";
 
             try {
-                const sheetParam = sheetName ? `&sheet=${encodeURIComponent(sheetName)}` : "";
+                // Если имя листа известно, запрашиваем по имени, иначе по системному gid=0
+                const sheetParam = sheetName ? `&sheet=${encodeURIComponent(sheetName)}` : "&gid=0";
                 const gvizUrl = `https://docs.google.com/spreadsheets/d/${currentSpreadsheetId}/gviz/tq?tqx=out:json${sheetParam}`;
 
                 const res = await fetch(gvizUrl);
-                const rawText = await res.text();
+                if (!res.ok) {
+                    throw new Error(`Google Таблица вернула ошибку HTTP ${res.status}. Убедитесь, что доступ открыт для всех по ссылке.`);
+                }
 
+                const rawText = await res.text();
                 const jsonStart = rawText.indexOf("{");
                 const jsonEnd = rawText.lastIndexOf("}");
-                if (jsonStart === -1 || jsonEnd === -1) throw new Error("Неверный ответ от Google Таблицы");
+                if (jsonStart === -1 || jsonEnd === -1) {
+                    throw new Error("Неверный формат ответа от Google Таблицы.");
+                }
 
                 const json = JSON.parse(rawText.substring(jsonStart, jsonEnd + 1));
-                if (!json || !json.table) throw new Error("Таблица пуста");
+                if (!json || !json.table) throw new Error("Таблица не содержит данных.");
 
                 processSheetData(json.table);
                 status.innerText = `Лист "${activeSheetName}" успешно загружен. Периодов в отчете: ${currentParsedData.dates.length}`;
@@ -481,12 +481,11 @@
                 renderCategoryCharts();
             } catch (e) {
                 console.error(e);
-                status.innerText = `Ошибка загрузки листа "${activeSheetName}". Убедитесь, что таблица доступна по ссылке.`;
+                status.innerText = `Ошибка: ${e.message}`;
                 status.style.color = "var(--danger)";
             }
         }
 
-        // Парсер чисел, процентов и времени
         function cleanNumeric(val) {
             if (val === null || val === undefined) return 0;
             let s = String(val).trim();
@@ -532,7 +531,6 @@
             parseMatrixData(matrix);
         }
 
-        // Семантический определитель колонок
         function parseMatrixData(matrix) {
             if (!matrix || matrix.length < 2) throw new Error("Недостаточно строк в таблице");
 
@@ -736,7 +734,7 @@
                     {
                         label: "Яндекс топ 3",
                         data: t.ya_top3 || [],
-                        borderColor: "#ff7a00", // насыщенный оранжевый сплошной
+                        borderColor: "#ff7a00", // яркий оранжевый сплошной
                         backgroundColor: "rgba(255, 122, 0, 0.15)",
                         borderWidth: 3,
                         pointRadius: 4,
@@ -1198,7 +1196,6 @@
             }
         }
 
-        // Автозагрузка при старте страницы
         window.addEventListener("DOMContentLoaded", () => {
             const urlInput = document.getElementById("sheetUrl").value.trim();
             if (urlInput) initDashboard();
