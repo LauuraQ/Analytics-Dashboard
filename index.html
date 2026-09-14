@@ -38,7 +38,7 @@
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1440px;
             margin: 0 auto;
         }
 
@@ -70,6 +70,16 @@
             border-radius: 12px;
             padding: 18px;
             margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 14px;
+            color: var(--text-main);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .input-row {
@@ -121,6 +131,7 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
+            white-space: nowrap;
         }
 
         .btn:hover {
@@ -186,7 +197,7 @@
 
         .dashboard-layout {
             display: grid;
-            grid-template-columns: 280px 1fr;
+            grid-template-columns: 260px 1fr;
             gap: 20px;
             align-items: start;
         }
@@ -201,6 +212,8 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
+            position: sticky;
+            top: 20px;
         }
 
         .menu-item {
@@ -238,9 +251,15 @@
             color: var(--text-main);
         }
 
+        .charts-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
         .chart-container {
             position: relative;
-            height: 520px;
+            height: 400px;
             width: 100%;
         }
 
@@ -261,7 +280,7 @@
         <div class="title">
             <div>
                 <h1>SEO & Leads Analytics Dashboard</h1>
-                <div class="subtitle">Визуализация данных Google Таблиц</div>
+                <div class="subtitle">Автоматическая визуализация данных Google Таблиц</div>
             </div>
         </div>
 
@@ -273,19 +292,15 @@
                 <button class="btn" onclick="togglePasteArea()">📋 Вставить ячейки текстом</button>
             </div>
 
-            <!-- Вставка текста напрямую -->
             <textarea id="rawPasteArea"
                 placeholder="Вставьте сюда скопированные данные прямо из Google Таблицы (Ctrl+A -> Ctrl+C)..."></textarea>
             <div id="pasteActionRow" style="display: none; margin-top: 10px;">
-                <button class="btn btn-primary" onclick="loadFromPaste()">Построить график из вставленного
-                    текста</button>
+                <button class="btn btn-primary" onclick="loadFromPaste()">Построить графики из текста</button>
             </div>
 
-            <!-- Ручной ввод вкладок, если Google блокирует прокси -->
             <div id="manualSheetsBox" class="manual-sheets-box">
                 <div style="font-size: 13px; margin-bottom: 8px; color: var(--text-main);">
-                    <b>Укажите названия листов (вкладок) через запятую</b>, если прокси не может прочесть их
-                    автоматически:
+                    <b>Укажите названия листов через запятую</b>, если прокси не смог найти их в сети:
                 </div>
                 <div class="input-row">
                     <input type="text" id="manualSheetsInput" placeholder="Например: site.ru, site.com, site.by" />
@@ -294,59 +309,49 @@
             </div>
 
             <div id="statusText" class="status-msg">
-                Готов к загрузке данных. Вставьте ссылку на таблицу или воспользуйтесь текстовой вставкой.
+                Готов к загрузке. Вставьте ссылку на таблицу или скопированные данные.
             </div>
         </div>
 
-        <!-- Переключатель сайтов (вкладок) -->
+        <!-- Вкладки сайтов -->
         <div id="tabsSection" style="display: none; margin-bottom: 20px;">
             <div class="tabs-header">
-                <span style="font-size: 13px; color: var(--text-muted);">Сайты (листы):</span>
+                <span style="font-size: 13px; color: var(--text-muted);">Сайты (вкладки):</span>
                 <button class="btn" style="padding: 4px 10px; font-size: 12px;" onclick="toggleManualSheets()">✏️
-                    Редактировать список листов</button>
+                    Указать список листов</button>
             </div>
             <div class="domain-tabs" id="domainTabs"></div>
         </div>
 
-        <!-- Рабочая зона: Меню категорий + График -->
+        <!-- Меню + Графики -->
         <div class="dashboard-layout" id="dashboardLayout" style="display: none;">
-            <div class="card">
-                <div class="card-title">Разделы отчета</div>
-                <div class="sidebar-menu">
-                    <div class="menu-item active" data-category="topvisor" onclick="selectCategory('topvisor')">
-                        <span>Топвизор</span>
-                    </div>
-                    <div class="menu-item" data-category="leads" onclick="selectCategory('leads')">
-                        <span>Количество лидов</span>
-                    </div>
-                    <div class="menu-item" data-category="metrika" onclick="selectCategory('metrika')">
-                        <span>Яндекс Метрика</span>
-                    </div>
-                    <div class="menu-item" data-category="webmaster" onclick="selectCategory('webmaster')">
-                        <span>Яндекс Вебмастер</span>
-                    </div>
-                    <div class="menu-item" data-category="gsc" onclick="selectCategory('gsc')">
-                        <span>Google Search Console</span>
-                    </div>
-                    <div class="menu-item" data-category="subdomains" onclick="selectCategory('subdomains')">
-                        <span>Поддомены Я + Г</span>
-                        <span class="menu-badge">Сравнение</span>
-                    </div>
-                    <div class="menu-item" data-category="costs" onclick="selectCategory('costs')">
-                        <span>Работы и расходы</span>
-                    </div>
+            <div class="sidebar-menu">
+                <div class="menu-item active" data-category="topvisor" onclick="selectCategory('topvisor')">
+                    <span>Топвизор</span>
+                </div>
+                <div class="menu-item" data-category="leads" onclick="selectCategory('leads')">
+                    <span>Количество лидов</span>
+                </div>
+                <div class="menu-item" data-category="metrika" onclick="selectCategory('metrika')">
+                    <span>Яндекс Метрика</span>
+                </div>
+                <div class="menu-item" data-category="webmaster" onclick="selectCategory('webmaster')">
+                    <span>Яндекс Вебмастер</span>
+                </div>
+                <div class="menu-item" data-category="gsc" onclick="selectCategory('gsc')">
+                    <span>Google Search Console</span>
+                </div>
+                <div class="menu-item" data-category="subdomains" onclick="selectCategory('subdomains')">
+                    <span>Поддомены Я + Г</span>
+                    <span class="menu-badge">Сравнение</span>
+                </div>
+                <div class="menu-item" data-category="costs" onclick="selectCategory('costs')">
+                    <span>Работы и расходы</span>
                 </div>
             </div>
 
-            <div class="card">
-                <div class="card-title">
-                    <span id="chartHeading">Топвизор</span>
-                    <span class="subtitle" id="currentDomainLabel"></span>
-                </div>
-                <div class="chart-container">
-                    <canvas id="mainChart"></canvas>
-                </div>
-            </div>
+            <!-- Контейнер для нескольких графиков текущего раздела -->
+            <div class="charts-stack" id="chartsStack"></div>
         </div>
     </div>
 
@@ -354,10 +359,9 @@
         let currentSpreadsheetId = "";
         let currentGid = null;
         let activeSheetName = "";
-        let activeCategory = "topvisor"; // По умолчанию открываем Топвизор (где данные есть сразу)
-        let chartInstance = null;
+        let activeCategory = "topvisor";
+        let chartInstances = [];
         let currentParsedData = null;
-        let knownSheets = [];
 
         function togglePasteArea() {
             const area = document.getElementById("rawPasteArea");
@@ -382,7 +386,6 @@
             return match ? match[1] : null;
         }
 
-        // Многоуровневый опрос прокси для поиска вкладок
         async function discoverSheets(sheetId) {
             const targetUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/htmlview`;
             const proxies = [
@@ -400,7 +403,7 @@
                     html = data && data.contents ? data.contents : (typeof data === "string" ? data : await res.text().catch(() => ""));
                     if (html && html.length > 300) break;
                 } catch (e) {
-                    console.warn("Прокси недоступен, проверяем следующий...");
+                    console.warn("Прокси недоступен, пробуем следующий...");
                 }
             }
 
@@ -420,7 +423,7 @@
                 names = [...new Set(matches)];
             }
 
-            return names.filter(n => n.length > 0);
+            return names.filter(Boolean);
         }
 
         async function initDashboard() {
@@ -428,7 +431,6 @@
             const status = document.getElementById("statusText");
             const loadBtn = document.getElementById("loadBtn");
 
-            // Если в поле случайно вставили скопированные строки ячеек таблицы
             if (urlInput.includes("\t") || urlInput.includes("\n")) {
                 loadFromRawText(urlInput);
                 return;
@@ -449,27 +451,22 @@
 
             try {
                 let sheets = await discoverSheets(sheetId);
-
-                // Восстанавливаем из localStorage, если ранее уже настраивали этот документ
                 const cached = localStorage.getItem("sheets_" + sheetId);
                 if (sheets.length === 0 && cached) {
                     sheets = JSON.parse(cached);
                 }
 
                 if (sheets && sheets.length > 0) {
-                    knownSheets = sheets;
-                    status.innerText = `Найдено листов: ${sheets.length} (${sheets.join(", ")})`;
+                    status.innerText = `Найдено листов: ${sheets.length}`;
                     status.style.color = "var(--success)";
                     renderDomainTabs(sheets);
                 } else {
-                    // Если прокси заблокированы, загружаем активный лист напрямую через GViz
-                    status.innerText = "Вкладки не обнаружены автоматически. Загружаем активный лист... Вы можете указать имена листов вручную.";
+                    status.innerText = "Вкладки не обнаружены автоматически. Открываем активный лист.";
                     document.getElementById("manualSheetsBox").style.display = "block";
                     renderDomainTabs([]);
                     loadSheetDirect(null, currentGid);
                 }
             } catch (err) {
-                console.warn(err);
                 loadSheetDirect(null, currentGid);
             } finally {
                 loadBtn.disabled = false;
@@ -481,7 +478,6 @@
             if (!val) return;
             const list = val.split(",").map(s => s.trim()).filter(Boolean);
             if (list.length > 0) {
-                knownSheets = list;
                 localStorage.setItem("sheets_" + currentSpreadsheetId, JSON.stringify(list));
                 renderDomainTabs(list);
                 document.getElementById("manualSheetsBox").style.display = "none";
@@ -520,10 +516,8 @@
             loadSheetDirect(sheets[0], null);
         }
 
-        // Прямой запрос к GViz Google Таблиц
         async function loadSheetDirect(sheetName, gid) {
             activeSheetName = sheetName || "Текущий лист";
-            document.getElementById("currentDomainLabel").innerText = activeSheetName;
             const status = document.getElementById("statusText");
 
             status.innerText = `Загрузка данных для "${activeSheetName}"...`;
@@ -543,18 +537,17 @@
                 const jsonStart = rawText.indexOf("{");
                 const jsonEnd = rawText.lastIndexOf("}");
                 if (jsonStart === -1 || jsonEnd === -1) {
-                    throw new Error("Google вернул некорректный ответ. Проверьте права доступа («Все, у кого есть ссылка»).");
+                    throw new Error("Неверный ответ от Google. Проверьте права доступа.");
                 }
 
                 const json = JSON.parse(rawText.substring(jsonStart, jsonEnd + 1));
                 if (!json || !json.table) throw new Error("Таблица не содержит данных");
 
                 processSheetData(json.table);
-                status.innerText = `Лист "${activeSheetName}" успешно загружен! Периодов в отчете: ${currentParsedData.dates.length}`;
+                status.innerText = `Лист "${activeSheetName}" загружен. Периодов: ${currentParsedData.dates.length}`;
                 status.style.color = "var(--success)";
-                renderCurrentChart();
+                renderCategoryCharts();
             } catch (e) {
-                console.error(e);
                 status.innerText = `Ошибка загрузки: ${e.message}`;
                 status.style.color = "var(--danger)";
             }
@@ -578,35 +571,35 @@
 
             document.getElementById("dashboardLayout").style.display = "grid";
             document.getElementById("tabsSection").style.display = "none";
-            document.getElementById("currentDomainLabel").innerText = "Вставленные данные";
+            activeSheetName = "Вставленные данные";
 
             try {
                 parseMatrixData(matrix);
-                status.innerText = `Успешно построено из буфера! Периодов: ${currentParsedData.dates.length}`;
+                status.innerText = `Построено из текста! Периодов: ${currentParsedData.dates.length}`;
                 status.style.color = "var(--success)";
-                renderCurrentChart();
+                renderCategoryCharts();
             } catch (err) {
-                status.innerText = `Ошибка при разборе данных: ${err.message}`;
+                status.innerText = `Ошибка разбора: ${err.message}`;
                 status.style.color = "var(--danger)";
             }
         }
 
-        // Преобразование времени, секунд, процентов и чисел
+        // Парсинг чисел, процентов, времени ("1 м 28 с", "33 с", "1:54")
         function cleanNumeric(val) {
-            if (val === null || val === undefined) return 0;
+            if (val === null || val === undefined) return null;
             let s = String(val).trim();
-            if (s === "" || s === "-" || s.toLowerCase().includes("нет") || s.toLowerCase().includes("проблем")) return 0;
+            if (s === "") return null;
+            if (s.toLowerCase().includes("нет данных")) return null;
+            if (s === "-" || s.toLowerCase() === "нет" || s.toLowerCase().includes("проблем нет")) return 0;
 
             s = s.replace("%", "").trim().replace(",", ".");
 
-            // Форматы "1:54", "59:06"
             if (/^\d+:\d+(:\d+)?$/.test(s)) {
                 const parts = s.split(":").map(Number);
                 if (parts.length === 2) return parts[0] * 60 + parts[1];
                 if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
             }
 
-            // Форматы "1 м 28 с", "33 с" (поддержка кириллицы и латиницы)
             if (/[мmсc]/i.test(s)) {
                 const minMatch = s.match(/(\d+)\s*[мm]/i);
                 const secMatch = s.match(/(\d+)\s*[сc]/i);
@@ -616,10 +609,16 @@
             }
 
             const num = parseFloat(s.replace(/\s+/g, ""));
-            return isNaN(num) ? 0 : num;
+            return isNaN(num) ? null : num;
         }
 
-        // Склейка cols и rows Google API без смещения
+        function formatSeconds(sec) {
+            if (sec === null || sec === undefined || isNaN(sec)) return "-";
+            const m = Math.floor(sec / 60);
+            const s = Math.round(sec % 60);
+            return `${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
         function processSheetData(table) {
             const colLabels = (table.cols || []).map(c => c ? (c.label || "") : "");
             const hasLabels = colLabels.some(l => l && l.trim().length > 0);
@@ -633,11 +632,9 @@
             parseMatrixData(matrix);
         }
 
-        // Динамический разбор шапки и строк данных
         function parseMatrixData(matrix) {
             if (!matrix || matrix.length < 2) throw new Error("Недостаточно строк в таблице");
 
-            // 1. Поиск строки начала дат (формат ДД.ММ в начале строки)
             let dataStartRow = -1;
             for (let r = 0; r < matrix.length; r++) {
                 const val = String(matrix[r][0] || "").trim();
@@ -648,10 +645,9 @@
             }
 
             if (dataStartRow === -1) {
-                throw new Error("Не удалось найти строки с периодами (например: 06.04.26 - 12.04.26)");
+                throw new Error("Не найдена строка начала данных (периоды формата ДД.ММ)");
             }
 
-            // 2. Поиск строки категорий выше строки дат
             let catRowIndex = 0;
             for (let r = 0; r < dataStartRow; r++) {
                 const rowStr = matrix[r].map(c => String(c).toLowerCase()).join(" ");
@@ -664,7 +660,6 @@
             let maxCols = 0;
             matrix.forEach(r => { if (r.length > maxCols) maxCols = r.length; });
 
-            // 3. Сопоставление колонок с разделами
             let activeCatKey = null;
             const columns = [];
 
@@ -685,10 +680,13 @@
 
                 if (!activeCatKey) continue;
 
-                // Поиск названия метрики снизу вверх по строкам шапки
                 let metricName = "";
                 for (let r = dataStartRow - 1; r >= catRowIndex; r--) {
-                    const val = String((matrix[r] && matrix[r][c]) || "").replace(/\r?\n/g, " ").trim();
+                    const val = String((matrix[r] && matrix[r][c]) || "")
+                        .replace(/["']/g, "")
+                        .replace(/\r?\n/g, " ")
+                        .replace(/\s+/g, " ")
+                        .trim();
                     if (val) {
                         metricName = val;
                         break;
@@ -709,7 +707,6 @@
                 });
             }
 
-            // 4. Сбор значений по датам
             const dates = [];
             const store = {
                 leads: {}, topvisor: {}, metrika: {}, webmaster: {},
@@ -737,57 +734,554 @@
             document.querySelectorAll(".menu-item").forEach(el => {
                 el.classList.toggle("active", el.getAttribute("data-category") === cat);
             });
-            renderCurrentChart();
+            renderCategoryCharts();
         }
 
-        function renderCurrentChart() {
+        // Поиск точного ключа метрики без чувствительности к пробелам и переносам
+        function getMetricSeries(categoryKey, searchQueries) {
+            const cat = currentParsedData.store[categoryKey] || {};
+            const keys = Object.keys(cat);
+            for (const q of searchQueries) {
+                const lower = q.toLowerCase();
+                const foundKey = keys.find(k => k.toLowerCase().includes(lower));
+                if (foundKey) {
+                    return { name: foundKey, data: cat[foundKey] };
+                }
+            }
+            return null;
+        }
+
+        function clearCharts() {
+            chartInstances.forEach(c => c.destroy());
+            chartInstances = [];
+            document.getElementById("chartsStack").innerHTML = "";
+        }
+
+        function createChartCard(title, subtitle = "") {
+            const card = document.createElement("div");
+            card.className = "card";
+            card.innerHTML = `
+                <div class="card-title">
+                    <span>${title}</span>
+                    <span class="subtitle">${subtitle || activeSheetName}</span>
+                </div>
+                <div class="chart-container">
+                    <canvas></canvas>
+                </div>
+            `;
+            document.getElementById("chartsStack").appendChild(card);
+            const canvas = card.querySelector("canvas");
+            return canvas.getContext("2d");
+        }
+
+        const commonChartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: {
+                    labels: { color: '#f1f3f9', boxWidth: 14, font: { size: 12 } }
+                },
+                tooltip: {
+                    backgroundColor: '#14161f',
+                    titleColor: '#f1f3f9',
+                    bodyColor: '#8b92a5',
+                    borderColor: '#2b3044',
+                    borderWidth: 1
+                }
+            },
+            scales: {
+                x: {
+                    grid: { color: '#2b3044' },
+                    ticks: { color: '#8b92a5', maxRotation: 45 }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: { color: '#2b3044' },
+                    ticks: { color: '#8b92a5' }
+                }
+            }
+        };
+
+        // Главный контроллер отрисовки по категориям
+        function renderCategoryCharts() {
             if (!currentParsedData) return;
-            const ctx = document.getElementById("mainChart").getContext("2d");
+            clearCharts();
             const { dates, store } = currentParsedData;
-            let datasets = [];
 
-            const colors = [
-                "#3b82f6", "#10b981", "#f59e0b", "#ec4899",
-                "#8b5cf6", "#06b6d4", "#f97316", "#14b8a6", "#a855f7"
-            ];
+            // 1. ТОПВИЗОР
+            if (activeCategory === "topvisor") {
+                const ctx = createChartCard("Топвизор: Позиции Яндекс vs Google (Топ 3 и Топ 10)");
+                const ya3 = getMetricSeries("topvisor", ["яндекс топ 3", "я топ 3"]);
+                const ya10 = getMetricSeries("topvisor", ["яндекс топ 10", "я топ 10"]);
+                const g3 = getMetricSeries("topvisor", ["google топ 3", "г топ 3"]);
+                const g10 = getMetricSeries("topvisor", ["google топ 10", "г топ 10"]);
 
-            if (activeCategory === "subdomains") {
-                document.getElementById("chartHeading").innerText = "Поддомены: Яндекс vs Google (данные с августа)";
-
-                Object.keys(store["subdomains_ya"] || {}).forEach(m => {
-                    datasets.push({
-                        label: `Яндекс (поддомены)`,
-                        data: store["subdomains_ya"][m],
-                        borderColor: "#f59e0b",
-                        backgroundColor: "rgba(245, 158, 11, 0.15)",
-                        borderWidth: 2.5,
+                const datasets = [
+                    {
+                        label: "Яндекс топ 3",
+                        data: ya3 ? ya3.data : [],
+                        borderColor: "#ff7a00", // насыщенный оранжевый
+                        backgroundColor: "rgba(255, 122, 0, 0.15)",
+                        borderWidth: 3,
                         pointRadius: 4,
                         tension: 0.2
-                    });
-                });
-
-                Object.keys(store["subdomains_google"] || {}).forEach(m => {
-                    datasets.push({
-                        label: `Google (поддомены)`,
-                        data: store["subdomains_google"][m],
-                        borderColor: "#3b82f6",
-                        borderDash: [5, 4],
-                        backgroundColor: "rgba(59, 130, 246, 0.15)",
+                    },
+                    {
+                        label: "Яндекс топ 10",
+                        data: ya10 ? ya10.data : [],
+                        borderColor: "#fbbf24", // янтарный оттенок
+                        borderDash: [6, 4],
                         borderWidth: 2.5,
+                        pointRadius: 3,
+                        tension: 0.2
+                    },
+                    {
+                        label: "Google топ 3",
+                        data: g3 ? g3.data : [],
+                        borderColor: "#2563eb", // насыщенный синий
+                        backgroundColor: "rgba(37, 99, 235, 0.15)",
+                        borderWidth: 3,
                         pointRadius: 4,
                         tension: 0.2
-                    });
-                });
+                    },
+                    {
+                        label: "Google топ 10",
+                        data: g10 ? g10.data : [],
+                        borderColor: "#60a5fa", // светло-голубой
+                        borderDash: [6, 4],
+                        borderWidth: 2.5,
+                        pointRadius: 3,
+                        tension: 0.2
+                    }
+                ];
 
-            } else {
-                const target = store[activeCategory] || {};
+                chartInstances.push(new Chart(ctx, {
+                    type: 'line',
+                    data: { labels: dates, datasets },
+                    options: commonChartOptions
+                }));
+            }
+
+            // 2. ЯНДЕКС МЕТРИКА (2 графика)
+            else if (activeCategory === "metrika") {
+                // График 1: Трафик (Визиты / Посетители)
+                const ctxTraffic = createChartCard("Яндекс Метрика: Трафик (Визиты и Посетители)");
+                const yaVis = getMetricSeries("metrika", ["яндекс визиты"]);
+                const yaPos = getMetricSeries("metrika", ["яндекс посетители"]);
+                const gVis = getMetricSeries("metrika", ["google визиты"]);
+                const gPos = getMetricSeries("metrika", ["google посетители"]);
+
+                chartInstances.push(new Chart(ctxTraffic, {
+                    type: 'line',
+                    data: {
+                        labels: dates,
+                        datasets: [
+                            {
+                                label: "Яндекс визиты",
+                                data: yaVis ? yaVis.data : [],
+                                borderColor: "#ff7a00",
+                                borderWidth: 3,
+                                pointRadius: 4,
+                                tension: 0.2
+                            },
+                            {
+                                label: "Яндекс посетители",
+                                data: yaPos ? yaPos.data : [],
+                                borderColor: "#fbbf24",
+                                borderDash: [6, 4],
+                                borderWidth: 2.5,
+                                pointRadius: 3,
+                                tension: 0.2
+                            },
+                            {
+                                label: "Google визиты",
+                                data: gVis ? gVis.data : [],
+                                borderColor: "#2563eb",
+                                borderWidth: 3,
+                                pointRadius: 4,
+                                tension: 0.2
+                            },
+                            {
+                                label: "Google посетители",
+                                data: gPos ? gPos.data : [],
+                                borderColor: "#60a5fa",
+                                borderDash: [6, 4],
+                                borderWidth: 2.5,
+                                pointRadius: 3,
+                                tension: 0.2
+                            }
+                        ]
+                    },
+                    options: commonChartOptions
+                }));
+
+                // График 2: Поведение (Отказы, Глубина, Время)
+                const ctxBehavior = createChartCard("Яндекс Метрика: Отказы, Глубина и Время на сайте");
+                const bounce = getMetricSeries("metrika", ["процент отказов", "отказ"]);
+                const depth = getMetricSeries("metrika", ["глубина"]);
+                const timeSite = getMetricSeries("metrika", ["время на сайте"]);
+
+                chartInstances.push(new Chart(ctxBehavior, {
+                    type: 'line',
+                    data: {
+                        labels: dates,
+                        datasets: [
+                            {
+                                label: "Процент отказов (%)",
+                                data: bounce ? bounce.data : [],
+                                borderColor: "#ec4899",
+                                backgroundColor: "rgba(236, 72, 153, 0.1)",
+                                borderWidth: 2.5,
+                                yAxisID: 'y',
+                                tension: 0.2
+                            },
+                            {
+                                label: "Глубина (стр)",
+                                data: depth ? depth.data : [],
+                                borderColor: "#10b981",
+                                borderWidth: 2.5,
+                                yAxisID: 'y',
+                                tension: 0.2
+                            },
+                            {
+                                label: "Время на сайте",
+                                data: timeSite ? timeSite.data : [],
+                                borderColor: "#a855f7",
+                                borderWidth: 2.5,
+                                yAxisID: 'yTime',
+                                tension: 0.2
+                            }
+                        ]
+                    },
+                    options: {
+                        ...commonChartOptions,
+                        plugins: {
+                            ...commonChartOptions.plugins,
+                            tooltip: {
+                                ...commonChartOptions.plugins.tooltip,
+                                callbacks: {
+                                    label: function (ctx) {
+                                        if (ctx.dataset.label === "Время на сайте") {
+                                            return `Время на сайте: ${formatSeconds(ctx.parsed.y)}`;
+                                        }
+                                        if (ctx.dataset.label.includes("отказов")) {
+                                            return `${ctx.dataset.label}: ${ctx.parsed.y}%`;
+                                        }
+                                        return `${ctx.dataset.label}: ${ctx.parsed.y}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: commonChartOptions.scales.x,
+                            y: {
+                                beginAtZero: true,
+                                position: 'left',
+                                grid: { color: '#2b3044' },
+                                ticks: { color: '#8b92a5' },
+                                title: { display: true, text: 'Отказы (%) / Глубина', color: '#8b92a5' }
+                            },
+                            yTime: {
+                                beginAtZero: true,
+                                position: 'right',
+                                grid: { drawOnChartArea: false },
+                                ticks: {
+                                    color: '#a855f7',
+                                    callback: (val) => formatSeconds(val)
+                                },
+                                title: { display: true, text: 'Время (мм:сс)', color: '#a855f7' }
+                            }
+                        }
+                    }
+                }));
+            }
+
+            // 3. ЯНДЕКС ВЕБМАСТЕР (2 графика)
+            else if (activeCategory === "webmaster") {
+                // График 1: Страницы
+                const ctxPages = createChartCard("Яндекс Вебмастер: Страницы и индексация");
+                const totalPages = getMetricSeries("webmaster", ["всего страниц"]);
+                const inSearch = getMetricSeries("webmaster", ["страниц в поиске"]);
+                const excluded = getMetricSeries("webmaster", ["исключённых страниц", "исключенных"]);
+
+                chartInstances.push(new Chart(ctxPages, {
+                    type: 'line',
+                    data: {
+                        labels: dates,
+                        datasets: [
+                            {
+                                label: "Всего страниц",
+                                data: totalPages ? totalPages.data : [],
+                                borderColor: "#3b82f6",
+                                borderWidth: 3,
+                                tension: 0.2
+                            },
+                            {
+                                label: "Страниц в поиске",
+                                data: inSearch ? inSearch.data : [],
+                                borderColor: "#10b981",
+                                borderWidth: 2.5,
+                                tension: 0.2
+                            },
+                            {
+                                label: "Исключённых страниц",
+                                data: excluded ? excluded.data : [],
+                                borderColor: "#ef4444",
+                                borderWidth: 2.5,
+                                tension: 0.2
+                            }
+                        ]
+                    },
+                    options: commonChartOptions
+                }));
+
+                // График 2: AI, Алиса, GPT
+                const ctxAi = createChartCard("Яндекс Вебмастер: Видимость в AI и переходы с ассистентов");
+                const aiVis = getMetricSeries("webmaster", ["видимость в ai"]);
+                const alice = getMetricSeries("webmaster", ["алисы", "алиса"]);
+                const gpt = getMetricSeries("webmaster", ["gpt"]);
+
+                chartInstances.push(new Chart(ctxAi, {
+                    type: 'line',
+                    data: {
+                        labels: dates,
+                        datasets: [
+                            {
+                                label: "Переходы из Алисы",
+                                data: alice ? alice.data : [],
+                                borderColor: "#f59e0b",
+                                borderWidth: 2.5,
+                                yAxisID: 'y',
+                                tension: 0.2
+                            },
+                            {
+                                label: "Переходы из GPT",
+                                data: gpt ? gpt.data : [],
+                                borderColor: "#06b6d4",
+                                borderWidth: 2.5,
+                                yAxisID: 'y',
+                                tension: 0.2
+                            },
+                            {
+                                label: "Видимость в AI (%)",
+                                data: aiVis ? aiVis.data : [],
+                                borderColor: "#8b5cf6",
+                                backgroundColor: "rgba(139, 92, 246, 0.15)",
+                                borderWidth: 3,
+                                spanGaps: true, // "нет данных" не обнуляет линию
+                                yAxisID: 'yAi',
+                                tension: 0.2
+                            }
+                        ]
+                    },
+                    options: {
+                        ...commonChartOptions,
+                        scales: {
+                            x: commonChartOptions.scales.x,
+                            y: {
+                                beginAtZero: true,
+                                position: 'left',
+                                grid: { color: '#2b3044' },
+                                ticks: { color: '#8b92a5' },
+                                title: { display: true, text: 'Переходы (кол-во)', color: '#8b92a5' }
+                            },
+                            yAi: {
+                                beginAtZero: true,
+                                position: 'right',
+                                max: 100,
+                                grid: { drawOnChartArea: false },
+                                ticks: {
+                                    color: '#8b92a5',
+                                    callback: (v) => v + '%'
+                                },
+                                title: { display: true, text: 'Видимость (%)', color: '#8b92a5' }
+                            }
+                        }
+                    }
+                }));
+            }
+
+            // 4. GOOGLE SEARCH CONSOLE (3 графика)
+            else if (activeCategory === "gsc") {
+                // График 1: Клики и Показы
+                const ctxClicks = createChartCard("Google Search Console: Клики и Показы в поиске");
+                const clicks = getMetricSeries("gsc", ["клики"]);
+                const impressions = getMetricSeries("gsc", ["показы"]);
+
+                chartInstances.push(new Chart(ctxClicks, {
+                    type: 'line',
+                    data: {
+                        labels: dates,
+                        datasets: [
+                            {
+                                label: "Клики",
+                                data: clicks ? clicks.data : [],
+                                borderColor: "#3b82f6",
+                                backgroundColor: "rgba(59, 130, 246, 0.15)",
+                                borderWidth: 3,
+                                yAxisID: 'y',
+                                tension: 0.2
+                            },
+                            {
+                                label: "Показы",
+                                data: impressions ? impressions.data : [],
+                                borderColor: "#a855f7",
+                                borderWidth: 2.5,
+                                yAxisID: 'yImpressions',
+                                tension: 0.2
+                            }
+                        ]
+                    },
+                    options: {
+                        ...commonChartOptions,
+                        scales: {
+                            x: commonChartOptions.scales.x,
+                            y: {
+                                beginAtZero: true,
+                                position: 'left',
+                                grid: { color: '#2b3044' },
+                                ticks: { color: '#8b92a5' },
+                                title: { display: true, text: 'Клики', color: '#3b82f6' }
+                            },
+                            yImpressions: {
+                                beginAtZero: true,
+                                position: 'right',
+                                grid: { drawOnChartArea: false },
+                                ticks: { color: '#a855f7' },
+                                title: { display: true, text: 'Показы', color: '#a855f7' }
+                            }
+                        }
+                    }
+                }));
+
+                // График 2: Страницы в индексе
+                const ctxIndex = createChartCard("Google Search Console: Индексация страниц");
+                const inIndex = getMetricSeries("gsc", ["стр в индексе", "в индексе"]);
+                const notInIndex = getMetricSeries("gsc", ["стр не в индексе", "не в индексе"]);
+
+                chartInstances.push(new Chart(ctxIndex, {
+                    type: 'line',
+                    data: {
+                        labels: dates,
+                        datasets: [
+                            {
+                                label: "Стр в индексе",
+                                data: inIndex ? inIndex.data : [],
+                                borderColor: "#10b981",
+                                borderWidth: 3,
+                                tension: 0.2
+                            },
+                            {
+                                label: "Стр не в индексе",
+                                data: notInIndex ? notInIndex.data : [],
+                                borderColor: "#f59e0b",
+                                borderWidth: 2.5,
+                                tension: 0.2
+                            }
+                        ]
+                    },
+                    options: commonChartOptions
+                }));
+
+                // График 3: Внешние ссылки
+                const ctxLinks = createChartCard("Google Search Console: Внешние ссылки");
+                const links = getMetricSeries("gsc", ["внешних ссылок", "ссылок"]);
+
+                chartInstances.push(new Chart(ctxLinks, {
+                    type: 'line',
+                    data: {
+                        labels: dates,
+                        datasets: [
+                            {
+                                label: "Внешних ссылок",
+                                data: links ? links.data : [],
+                                borderColor: "#06b6d4",
+                                backgroundColor: "rgba(6, 182, 212, 0.15)",
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.2
+                            }
+                        ]
+                    },
+                    options: commonChartOptions
+                }));
+            }
+
+            // 5. КОЛИЧЕСТВО ЛИДОВ (1 график)
+            else if (activeCategory === "leads") {
+                const ctxLeads = createChartCard("Количество лидов (общий итог)");
+                const leadsSeries = getMetricSeries("leads", ["лид"]);
+
+                chartInstances.push(new Chart(ctxLeads, {
+                    type: 'line',
+                    data: {
+                        labels: dates,
+                        datasets: [
+                            {
+                                label: "Количество лидов",
+                                data: leadsSeries ? leadsSeries.data : [],
+                                borderColor: "#10b981",
+                                backgroundColor: "rgba(16, 185, 129, 0.15)",
+                                borderWidth: 3,
+                                pointRadius: 5,
+                                fill: true,
+                                tension: 0.25
+                            }
+                        ]
+                    },
+                    options: commonChartOptions
+                }));
+            }
+
+            // 6. ПОДДОМЕНЫ Я + Г (1 график)
+            else if (activeCategory === "subdomains") {
+                const ctxSub = createChartCard("Поддомены: Яндекс vs Google (данные с августа)");
+                const yaSub = getMetricSeries("subdomains_ya", ["яндекс", "я"]);
+                const gSub = getMetricSeries("subdomains_google", ["google", "г"]);
+
+                chartInstances.push(new Chart(ctxSub, {
+                    type: 'line',
+                    data: {
+                        labels: dates,
+                        datasets: [
+                            {
+                                label: "Яндекс (поддомены)",
+                                data: yaSub ? yaSub.data : [],
+                                borderColor: "#ff7a00",
+                                backgroundColor: "rgba(255, 122, 0, 0.15)",
+                                borderWidth: 3,
+                                pointRadius: 4,
+                                tension: 0.2
+                            },
+                            {
+                                label: "Google (поддомены)",
+                                data: gSub ? gSub.data : [],
+                                borderColor: "#2563eb",
+                                borderDash: [6, 4],
+                                backgroundColor: "rgba(37, 99, 235, 0.15)",
+                                borderWidth: 2.5,
+                                pointRadius: 4,
+                                tension: 0.2
+                            }
+                        ]
+                    },
+                    options: commonChartOptions
+                }));
+            }
+
+            // 7. РАБОТЫ И РАСХОДЫ
+            else if (activeCategory === "costs") {
+                const ctxCosts = createChartCard("Работы и расходы");
+                const target = store["costs"] || {};
+                const colors = ["#3b82f6", "#10b981", "#f59e0b", "#ec4899", "#8b5cf6", "#06b6d4"];
                 let cIdx = 0;
+                let datasets = [];
 
                 Object.keys(target).forEach(m => {
                     const vals = target[m];
-                    const hasData = vals.some(v => v > 0);
+                    const hasData = vals.some(v => v !== null && v > 0);
                     const col = colors[cIdx % colors.length];
-
                     datasets.push({
                         label: m,
                         data: vals,
@@ -801,44 +1295,12 @@
                     cIdx++;
                 });
 
-                const activeTitle = document.querySelector(`.menu-item[data-category="${activeCategory}"] span`);
-                document.getElementById("chartHeading").innerText = activeTitle ? activeTitle.innerText : "График";
+                chartInstances.push(new Chart(ctxCosts, {
+                    type: 'line',
+                    data: { labels: dates, datasets },
+                    options: commonChartOptions
+                }));
             }
-
-            if (chartInstance) chartInstance.destroy();
-
-            chartInstance = new Chart(ctx, {
-                type: 'line',
-                data: { labels: dates, datasets },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false },
-                    plugins: {
-                        legend: {
-                            labels: { color: '#f1f3f9', boxWidth: 14, font: { size: 12 } }
-                        },
-                        tooltip: {
-                            backgroundColor: '#14161f',
-                            titleColor: '#f1f3f9',
-                            bodyColor: '#8b92a5',
-                            borderColor: '#2b3044',
-                            borderWidth: 1
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: { color: '#2b3044' },
-                            ticks: { color: '#8b92a5', maxRotation: 45 }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: '#2b3044' },
-                            ticks: { color: '#8b92a5' }
-                        }
-                    }
-                }
-            });
         }
     </script>
 </body>
